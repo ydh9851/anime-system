@@ -8,13 +8,14 @@ recommend_api.py
 用法:
     python recommend_api.py --algo <algo> [--user <int>] [--movie <title>] [--keywords <text>] [--top <int=10>]
 
-algo 取值（9 种）:
+algo 取值（10 种）:
     demographic     全局流行度/加权得分推荐（naive_recommender.Demographic）
     content         基于 synopsis 的 TF-IDF 内容相似推荐（naive_recommender.Content）
     keyword         基于 studios/genres 关键词推荐（naive_recommender.Keyword）
     user_knn        基于用户的 KNN 协同过滤（personal_recommender.KNN_user）
     movie_knn       基于动漫的 KNN 协同过滤（personal_recommender.KNN_movie）
     svd             基于 SVD 的协同过滤评分（personal_recommender.Personal_SVD）
+    ncf             深度学习：神经协同过滤 NeuMF（deep_recommender.NCF，PyTorch）
     usr_movie_knn   集成：用户KNN 候选 + 动漫KNN 精排（ensemble_recommender.KNN_movie_usr_ensemble）
     knn_svd         集成：用户KNN 候选 + SVD 评分精排（ensemble_recommender.KNN_SVD_ensemble）
     usr_keywords    集成：用户KNN 候选 + 关键词相似精排（ensemble_recommender.KNN_usr_keywords_ensemble）
@@ -56,10 +57,12 @@ SYSTEM_ROOT = os.path.dirname(os.path.dirname(BASE))  # 系统工程根目录 mo
 DATA_DIR = os.path.join(SYSTEM_ROOT, "data", "recommendation")  # 统一数据目录
 PERSONAL_DATA_DIR = os.path.join(DATA_DIR, "personal")
 ENSEMBLE_DIR = os.path.join(BASE, "ensemble_recommender")
+DEEP_DIR = os.path.join(BASE, "deep_recommender")
 
 sys.path.insert(0, NAIVE_DIR)
 sys.path.insert(0, PERSONAL_DIR)
 sys.path.insert(0, ENSEMBLE_DIR)
+sys.path.insert(0, DEEP_DIR)
 
 # 强制 UTF-8 输出：Windows 下管道 stdout 默认可能是 GBK/ANSI，
 # Java 端按 UTF-8 解码，故统一 reconfig 为 UTF-8。
@@ -153,6 +156,25 @@ def ml_ids_to_movies(ml_ids, ml_titles=None):
             continue
         title = tmdb_titles.get(tmdb_id, ml_title)
         out.append({"title": title, "movieId": int(tmdb_id), "score": None})
+    return out
+
+
+def ml_ids_to_movies_scored(ml_ids, scores):
+    """把 (MovieLens movieId, 分数) 列表转成契约 JSON，保留算法得分。"""
+    links = get_links()
+    tmdb_titles = get_tmdb_titles()
+    movies_index = get_movies_index()
+    out = []
+    for mid, score in zip(ml_ids, scores):
+        tmdb_id = links.get(int(mid))
+        if tmdb_id is None:
+            continue
+        title = tmdb_titles.get(tmdb_id, movies_index.get(int(mid), ""))
+        out.append({
+            "title": title,
+            "movieId": int(tmdb_id),
+            "score": float(score) if score is not None else None,
+        })
     return out
 
 
@@ -294,6 +316,26 @@ def run_svd(user, top):
     return ml_ids_to_movies(ml_ids, titles)
 
 
+def run_ncf(user, top):
+    """深度学习：神经协同过滤 NeuMF（PyTorch）。返回带预测评分的 Top-K。"""
+    import pandas as pd
+    from NCF import NCF_recommender
+    with _silent():
+        rec = NCF_recommender()   # 首次自动训练并缓存 model_cache/ncf.pt
+    train = pd.read_csv(os.path.join(PERSONAL_DATA_DIR, "train.csv"))
+    rated = set(train[train["userId"] == user]["movieId"].astype(int))
+    counts = train.groupby("movieId")["rating"].count().sort_values(ascending=False)
+    # 候选池：用户未评分的高人气动漫，限制规模以控制推理时间
+    cands = [int(mid) for mid in counts.index if int(mid) not in rated][:1000]
+    if not cands:
+        raise ValueError("No candidate movies for user %s" % user)
+    with _silent():
+        pairs = rec.recommend(user, cands, top)   # [(movieId, predicted_rating), ...]
+    ml_ids = [p[0] for p in pairs]
+    scores = [p[1] for p in pairs]
+    return ml_ids_to_movies_scored(ml_ids, scores)
+
+
 # ---------------------------------------------------------------------------
 # ensemble 三算法（集成/混合推荐，基于 MovieLens，返回 MovieLens movieId）
 # 说明: ensemble_recommender 的 2 个脚本在模块顶层带演示代码，已加 __main__ 保护
@@ -383,7 +425,7 @@ def main():
         parser = _Parser(prog="recommend_api.py")
         parser.add_argument("--algo", required=True,
                             choices=["demographic", "content", "keyword",
-                                     "user_knn", "movie_knn", "svd",
+                                     "user_knn", "movie_knn", "svd", "ncf",
                                      "usr_movie_knn", "knn_svd", "usr_keywords"])
         parser.add_argument("--user", type=int, default=None)
         parser.add_argument("--movie", default=None)
@@ -416,6 +458,10 @@ def main():
             if args.user is None:
                 raise ValueError("--user is required for algo 'svd'")
             movies = run_svd(args.user, top)
+        elif algo == "ncf":
+            if args.user is None:
+                raise ValueError("--user is required for algo 'ncf'")
+            movies = run_ncf(args.user, top)
         elif algo == "usr_movie_knn":
             if args.user is None:
                 raise ValueError("--user is required for algo 'usr_movie_knn'")

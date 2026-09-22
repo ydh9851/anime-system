@@ -75,8 +75,9 @@ public class RecommendServiceImpl implements RecommendService {
         switch (algo) {
             case "user_knn":
             case "svd":
+            case "ncf":
                 if (req.getUserId() == null) {
-                    throw new IllegalArgumentException("算法 " + algo + " 需要填写用户ID（如 11 = 动漫评分用户1）");
+                    throw new IllegalArgumentException("算法 " + algo + " 需要填写用户ID（如 15 = 动漫评分用户）");
                 }
                 break;
             case "content":

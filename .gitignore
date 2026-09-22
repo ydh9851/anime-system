@@ -41,6 +41,7 @@ Thumbs.db
 
 # ===== 模型缓存（首次预测时自动重新训练生成）=====
 algorithm/prediction/model_cache/
+algorithm/recommendation/deep_recommender/model_cache/
 
 # ===== 后端内嵌前端构建产物（由 frontend 构建后复制到 static/admin）=====
 backend/src/main/resources/static/admin/

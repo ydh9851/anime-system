@@ -4,12 +4,14 @@
 
     <el-form :inline="true">
       <el-form-item label="推荐算法">
-        <el-select v-model="query.algo" style="width:300px">
-          <el-option v-for="a in algos" :key="a.value" :label="a.label" :value="a.value"/>
+        <el-select v-model="query.algo" style="width:340px">
+          <el-option-group v-for="g in algoGroups" :key="g.group" :label="g.group">
+            <el-option v-for="a in g.items" :key="a.value" :label="a.label" :value="a.value"/>
+          </el-option-group>
         </el-select>
       </el-form-item>
       <el-form-item v-if="mode === 'user'" label="用户ID">
-        <el-input v-model="query.userId" placeholder="如 11（=动漫评分用户1）" style="width:150px"/>
+        <el-input v-model="query.userId" placeholder="如 15（= 动漫评分用户）" style="width:150px"/>
       </el-form-item>
       <el-form-item v-if="needMovie" label="动漫名">
         <el-input v-model="query.movieTitle" placeholder="如 Fullmetal Alchemist: Brotherhood" style="width:220px"/>
@@ -56,26 +58,51 @@
 <script>
 import recommendApi from '@/api/recommend'
 
-// 按“用户属性 / 动漫属性”划分的算法清单（与 Movie-Analysis-master/recommend_api.py 一一对应）
-const USER_ALGOS = [
-  { label: '① 人口统计热门（IMDB 加权）', value: 'demographic', user: false, movie: false },
-  { label: '② 用户协同过滤 KNN', value: 'user_knn', user: true, movie: false },
-  { label: '③ SVD 评分矩阵分解', value: 'svd', user: true, movie: false },
-  { label: '④ 集成：用户KNN + SVD', value: 'knn_svd', user: true, movie: false },
-  { label: '⑤ 集成：用户KNN + 关键词', value: 'usr_keywords', user: true, movie: false },
-  { label: '⑥ 集成：用户KNN + 动漫KNN', value: 'usr_movie_knn', user: true, movie: true }
-]
-const VIDEO_ALGOS = [
-  { label: '① 基于动漫简介（内容相似）', value: 'content', user: false, movie: true },
-  { label: '② 基于动漫标签（TF-IDF）', value: 'keyword', user: false, movie: true },
-  { label: '③ 动漫相似度协同 KNN', value: 'movie_knn', user: false, movie: true }
+// 统一算法清单（与《03-算法设计说明书》A8~A12 对应，按类别分组）
+// mode: user=用户属性推荐入口 / video=动漫属性推荐入口
+const ALGO_GROUPS = [
+  {
+    group: '统计与热门',
+    items: [
+      { label: '人口统计热门（IMDB 加权）', value: 'demographic', mode: 'user', type: '统计推荐', needUser: false, needMovie: false }
+    ]
+  },
+  {
+    group: '内容推荐（基于动漫属性）',
+    items: [
+      { label: '动漫简介内容相似（TF-IDF）', value: 'content', mode: 'video', type: '内容推荐', needUser: false, needMovie: true },
+      { label: '动漫标签关键词（TF-IDF）', value: 'keyword', mode: 'video', type: '内容推荐', needUser: false, needMovie: true },
+      { label: '动漫相似度协同 KNN（Item-KNN）', value: 'movie_knn', mode: 'video', type: '协同过滤', needUser: false, needMovie: true }
+    ]
+  },
+  {
+    group: '协同过滤与矩阵分解（基于用户属性）',
+    items: [
+      { label: '用户协同过滤 User-KNN', value: 'user_knn', mode: 'user', type: '协同过滤', needUser: true, needMovie: false },
+      { label: 'SVD 评分矩阵分解', value: 'svd', mode: 'user', type: '矩阵分解', needUser: true, needMovie: false }
+    ]
+  },
+  {
+    group: '深度学习',
+    items: [
+      { label: 'NCF 神经协同过滤（NeuMF · PyTorch）', value: 'ncf', mode: 'user', type: '深度学习', needUser: true, needMovie: false }
+    ]
+  },
+  {
+    group: '集成推荐',
+    items: [
+      { label: '集成：User-KNN + SVD', value: 'knn_svd', mode: 'user', type: '集成', needUser: true, needMovie: false },
+      { label: '集成：User-KNN + 关键词', value: 'usr_keywords', mode: 'user', type: '集成', needUser: true, needMovie: false, needKeywords: true },
+      { label: '集成：User-KNN + Item-KNN', value: 'usr_movie_knn', mode: 'user', type: '集成', needUser: true, needMovie: true }
+    ]
+  }
 ]
 
 export default {
   name: 'RecommendIndex',
   data () {
     return {
-      query: { algo: '', userId: '11', movieTitle: 'Fullmetal Alchemist: Brotherhood', keywords: '', top: 10 },
+      query: { algo: '', userId: '15', movieTitle: 'Fullmetal Alchemist: Brotherhood', keywords: '', top: 10 },
       list: [],
       loading: false
     }
@@ -85,17 +112,24 @@ export default {
     mode () {
       return this.$route.meta && this.$route.meta.mode === 'video' ? 'video' : 'user'
     },
+    // 按当前模式过滤出的分组（用于下拉分组展示）
+    algoGroups () {
+      return ALGO_GROUPS
+        .map(g => ({ group: g.group, items: g.items.filter(i => i.mode === this.mode) }))
+        .filter(g => g.items.length)
+    },
+    // 扁平算法清单（用于查找与校验）
     algos () {
-      return this.mode === 'video' ? VIDEO_ALGOS : USER_ALGOS
+      return ALGO_GROUPS.reduce((acc, g) => acc.concat(g.items), [])
     },
     currentAlgo () {
       return this.algos.find(a => a.value === this.query.algo)
     },
     needUser () {
-      return !!(this.currentAlgo && this.currentAlgo.user)
+      return !!(this.currentAlgo && this.currentAlgo.needUser)
     },
     needMovie () {
-      return !!(this.currentAlgo && this.currentAlgo.movie)
+      return !!(this.currentAlgo && this.currentAlgo.needMovie)
     },
     modeTip () {
       if (this.mode === 'video') {
@@ -105,6 +139,9 @@ export default {
     },
     tipText () {
       const algo = this.query.algo
+      if (algo === 'ncf') {
+        return '当前为深度学习算法：NCF 神经协同过滤（NeuMF 结构，PyTorch 实现）。通过用户/动漫嵌入向量与多层感知机学习非线性交互，首次调用需训练并缓存模型（约 15~30 秒），之后秒级返回。'
+      }
       if (algo.startsWith('usr_') || algo === 'knn_svd') {
         return '当前为集成/混合算法：先基于用户KNN生成候选动漫，再结合第二种算法精排。服务端需训练多个协同过滤模型，耗时较长，请耐心等待。'
       }
@@ -116,8 +153,8 @@ export default {
   },
   watch: {
     '$route.meta.mode' () {
-      this.query.algo = ''
-      this.list = []
+      // 切换「用户属性 / 动漫属性」推荐模式时，重置为该模式的默认算法
+      this.resetAlgo()
     }
   },
   mounted () {
@@ -167,8 +204,7 @@ export default {
       return p && String(p).startsWith('http') ? p : ''
     },
     algoLabel (value) {
-      const all = USER_ALGOS.concat(VIDEO_ALGOS)
-      const hit = all.find(a => a.value === value)
+      const hit = this.algos.find(a => a.value === value)
       return hit ? hit.label : value
     },
     scorePercent (score) {

@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">动漫热度预测</span>
-          <el-tag size="small" type="info">底层 6 算法：LinearRegression / KNN / SVM / DecisionTree / RandomForest / LightGBM</el-tag>
+          <el-tag size="small" type="info">底层 6 种机器学习模型 · 对数变换 + 标准化特征工程</el-tag>
         </div>
       </template>
 
@@ -13,12 +13,12 @@
           <el-col :span="8">
             <el-form-item label="预测模型">
               <el-select v-model="form.model" style="width:100%">
-                <el-option label="LightGBM（推荐，效果最佳）" value="lgbm"/>
-                <el-option label="随机森林 RandomForest" value="rf"/>
-                <el-option label="线性回归 LinearRegression" value="lr"/>
+                <el-option label="LightGBM 梯度提升树（推荐）" value="lgbm"/>
+                <el-option label="随机森林 Random Forest" value="rf"/>
+                <el-option label="支持向量回归 SVR" value="svm"/>
                 <el-option label="K 近邻回归 KNN" value="knn"/>
-                <el-option label="支持向量回归 SVM" value="svm"/>
-                <el-option label="决策树回归 DecisionTree" value="dt"/>
+                <el-option label="决策树回归 Decision Tree" value="dt"/>
+                <el-option label="线性回归 Linear Regression（基线）" value="lr"/>
               </el-select>
             </el-form-item>
           </el-col>
@@ -88,7 +88,7 @@
         <div class="card-header">
           <span class="card-title">预测结果</span>
           <el-tag v-if="result.trainedNow" type="warning" size="small">本次为新训练模型</el-tag>
-          <el-tag type="info" size="small">模型：{{ result.model }}</el-tag>
+          <el-tag type="info" size="small">模型：{{ modelLabel(result.model) }}</el-tag>
         </div>
       </template>
       <el-row :gutter="20">
@@ -110,9 +110,9 @@
           <div class="result-item">
             <div class="result-label">模型指标（20% 测试集）</div>
             <div v-if="result.metrics" class="result-metrics">
-              <div>决定系数 R²：<b>{{ fmt(result.metrics.r2) }}</b></div>
-              <div>RMSE：{{ fmt(result.metrics.rmse) }}</div>
-              <div>MAE：{{ fmt(result.metrics.mae) }}</div>
+              <div>决定系数 R²<span class="metric-hint">（对数空间）</span>：<b>{{ fmt(result.metrics.r2) }}</b></div>
+              <div>RMSE<span class="metric-hint">（原始量纲）</span>：{{ fmt(result.metrics.rmse) }}</div>
+              <div>MAE<span class="metric-hint">（原始量纲）</span>：{{ fmt(result.metrics.mae) }}</div>
             </div>
             <div v-else class="result-sub">暂无指标</div>
           </div>
@@ -143,6 +143,16 @@
 
 <script>
 import predictApi from '@/api/predict'
+
+// 模型中文标注（与《03-算法设计说明书》A1~A6 对应）
+const MODEL_LABELS = {
+  lgbm: 'LightGBM 梯度提升树',
+  rf: '随机森林 Random Forest',
+  svm: '支持向量回归 SVR',
+  knn: 'K 近邻回归 KNN',
+  dt: '决策树 Decision Tree',
+  lr: '线性回归 Linear Regression'
+}
 
 export default {
   name: 'PredictIndex',
@@ -191,6 +201,9 @@ export default {
     }
   },
   methods: {
+    modelLabel (name) {
+      return MODEL_LABELS[name] || name
+    },
     copyResult () {
       if (!this.result) return
       const text = `预测模型：${this.result.model}\n预测热度：${this.formatMoney(this.result.prediction)} members\n${this.result.metrics ? `R²：${this.fmt(this.result.metrics.r2)}，RMSE：${this.fmt(this.result.metrics.rmse)}` : ''}`
@@ -308,6 +321,10 @@ export default {
 }
 .result-metrics b {
   color: #67c23a;
+}
+.metric-hint {
+  color: #a0aec0;
+  font-size: 11px;
 }
 
 .heat-bar {

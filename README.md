@@ -9,11 +9,21 @@
 | 模块 | 说明 | 技术要点 |
 | --- | --- | --- |
 | 📈 动漫属性分析 | 类型 / 语言 / 年份 / 热度分布可视化 | ECharts / 后端统计接口 |
-| 📊 动漫数据探索（EDA） | 19 张中文分析图：评分 / 题材 / 热度 / 年份 / 制作公司等 | pandas / matplotlib / seaborn |
-| 🔥 热度预测 | 6 种模型（LR / KNN / SVM / DT / RF / LGBM）在线预测 | LightGBM / scikit-learn |
-| 🎯 动漫推荐 | 9 种算法：人口统计学 / 内容 / 关键词 / User-KNN / SVD / 混合等 | scikit-surprise / numpy |
+| 📊 动漫数据探索（EDA） | 22 张中文分析图与词云：评分 / 题材 / 热度 / 年份 / 制作公司等 | pandas / matplotlib / seaborn / wordcloud |
+| 🔥 热度预测 | 6 种机器学习模型（LR / KNN / SVR / DT / RF / LightGBM）+ 对数变换特征工程 | LightGBM / scikit-learn |
+| 🧠 深度学习推荐 | NCF 神经协同过滤（NeuMF：GMF + MLP 融合） | PyTorch |
+| 🎯 动漫推荐 | 10 种算法：人口统计 / 内容 / 关键词 / User-KNN / Item-KNN / SVD / **NCF** / 集成等 | scikit-surprise / PyTorch |
 | 🗄️ 数据管理 | 动漫库、用户、评分、播放量后台管理 | MyBatis-Plus / MySQL 8 |
 | 🖥️ 管理界面 | Vue 3 单页应用，后端一体化托管 | Vue 3 / Element Plus / ECharts |
+
+**设计文档**
+
+| 文档 | 说明 |
+| --- | --- |
+| [01-需求分析说明书](docs/01-需求分析说明书.md) | 项目背景、数据画像、功能/非功能需求、需求追踪矩阵 |
+| [02-概要设计说明书](docs/02-概要设计说明书.md) | 系统架构、技术选型、模块划分、数据库与接口设计 |
+| [03-算法设计说明书](docs/03-算法设计说明书.md) | 12 种算法（6 种机器学习 + NCF 深度学习 + 5 类推荐）原理与设计 |
+| [04-文档检查报告](docs/04-文档检查报告.md) | 文档符合性、数据准确性、一致性检查与结论 |
 
 #### 介绍
 
@@ -44,9 +54,14 @@ anime-system/                          # 系统根目录（整个目录拷贝到
 │       ├── anime_5000_credits.csv
 │       └── personal/                  # 个人化数据（anime_titles/ratings/links + 划分 train/test）
 ├── algorithm/                         # Python 算法引擎（不含数据，统一从 data/ 读取）
-│   ├── eda/                           #   动漫数据探索（eda_anime.py + figures/ 19 张图）
-│   ├── prediction/                    #   动漫热度预测（predict_api.py + model_cache 模型缓存）
-│   └── recommendation/                #   动漫推荐（recommend_api.py + 各推荐子模块）
+│   ├── eda/                           #   动漫数据探索（eda_anime.py + wordcloud_anime.py + figures/ 22 张图）
+│   ├── prediction/                    #   动漫热度预测（predict_api.py + 6 种模型 + model_cache）
+│   └── recommendation/                #   动漫推荐（recommend_api.py + 10 种算法）
+│       ├── naive_recommender/         #     人口统计 / 内容相似 / 关键词 TF-IDF
+│       ├── personal_recommender/      #     用户KNN / 物品KNN / SVD
+│       ├── ensemble_recommender/      #     3 种集成推荐
+│       └── deep_recommender/          #     深度学习 NCF（PyTorch NeuMF）
+├── docs/                              # 设计文档（需求分析 / 概要设计 / 算法设计 / 检查报告）
 ├── scripts/                           # 数据构建脚本
 │   └── data_prep/
 │       └── build_anime_dataset.py     # 清洗 + 分层抽样 + 生成 train/test
