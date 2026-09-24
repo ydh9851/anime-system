@@ -1,0 +1,392 @@
+@import './variables.scss';
+@import './mixin.scss';
+@import './transition.scss';
+@import './element-ui.scss';
+@import './sidebar.scss';
+@import './btn.scss';
+
+:root {
+  --anime-accent: #f2a7c3;
+  --anime-accent-2: #d9a7e0;
+  --anime-accent-3: #38bdf8;
+  --anime-ink: #0f172a;
+  --anime-muted: #64748b;
+  --anime-surface: #ffffff;
+  --anime-bg: #fdf6f9;
+  --anime-radius: 18px;
+  --anime-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  --anime-shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.06);
+  --anime-gradient: linear-gradient(135deg, #f2a7c3 0%, #d9a7e0 55%, #38bdf8 100%);
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Inter, "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  color: var(--anime-ink);
+  background: var(--anime-bg);
+}
+
+/* ---------- 全局动效 ---------- */
+@keyframes anime-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes anime-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes anime-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes anime-aurora {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes anime-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes anime-pop {
+  0% { transform: scale(0.96); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes anime-spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.fade-up { animation: anime-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.fade-in { animation: anime-fade-in 0.6s ease both; }
+.pop-in { animation: anime-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.float { animation: anime-float 6s ease-in-out infinite; }
+
+.stagger > * {
+  animation: anime-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.stagger > *:nth-child(4) { animation-delay: 0.22s; }
+.stagger > *:nth-child(5) { animation-delay: 0.28s; }
+.stagger > *:nth-child(6) { animation-delay: 0.34s; }
+.stagger > *:nth-child(7) { animation-delay: 0.40s; }
+.stagger > *:nth-child(8) { animation-delay: 0.46s; }
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.55); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- 通用玻璃卡片 ---------- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--anime-radius);
+  box-shadow: var(--anime-shadow);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s;
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+}
+
+/* ---------- 暗色主题 ---------- */
+html.dark {
+  --anime-ink: #e5e9f2;
+  --anime-muted: #9aa6bd;
+  --anime-bg: #12141c;
+  --anime-surface: #1a1d27;
+  --anime-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+html.dark body { background: #12141c; color: #e5e9f2; }
+html.dark .app-main { background: #12141c !important; }
+html.dark .glass-card,
+html.dark .el-card { background: #1a1d27 !important; border-color: rgba(255,255,255,.07) !important; }
+html.dark .el-card__header { border-color: rgba(255,255,255,.07); }
+html.dark .el-table th.el-table__cell { background: #20242f !important; color: #c3cbdc; }
+html.dark .el-table { --el-table-bg-color: #1a1d27; --el-table-tr-bg-color: #1a1d27; --el-table-text-color: #d5dbe8; --el-table-border-color: rgba(255,255,255,.06); }
+html.dark .el-table__row:hover > td.el-table__cell { background: #232838 !important; }
+html.dark .el-input__wrapper,html.dark .el-textarea__inner { background: #20242f; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset !important; }
+html.dark .el-input__inner,html.dark .el-textarea__inner { color: #e5e9f2; }
+html.dark .stat-card,html.dark .qa-card,html.dark .rec-card,html.dark .chart-box,html.dark .stat-card { background: #1a1d27 !important; border-color: rgba(255,255,255,.07) !important; }
+html.dark .stat-value,html.dark .rec-title,html.dark .qa-text b,html.dark .card-head h3,html.dark .chart-title,html.dark .eda-page-title { color: #eef1f7; }
+html.dark .stat-label,html.dark .rec-meta,html.dark .eda-desc,html.dark .eda-page-sub { color: #9aa6bd; }
+html.dark .el-breadcrumb__inner,html.dark .el-breadcrumb__inner a { color: #9aa6bd; }
+html.dark .el-pagination .el-pager li { background: #20242f; color: #c3cbdc; }
+
+label {
+  font-weight: 700;
+}
+
+html {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+#app {
+  height: 100%;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+.no-padding {
+  padding: 0px !important;
+}
+
+.padding-content {
+  padding: 4px 0;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+div:focus {
+  outline: none;
+}
+
+.fr {
+  float: right;
+}
+
+.fl {
+  float: left;
+}
+
+.pr-5 {
+  padding-right: 5px;
+}
+
+.pl-5 {
+  padding-left: 5px;
+}
+
+.block {
+  display: block;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.inlineBlock {
+  display: block;
+}
+
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
+
+aside {
+  background: #eef1f6;
+  padding: 8px 24px;
+  margin-bottom: 20px;
+  border-radius: 2px;
+  display: block;
+  line-height: 32px;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  color: #2c3e50;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  a {
+    color: #337ab7;
+    cursor: pointer;
+
+    &:hover {
+      color: rgb(32, 160, 255);
+    }
+  }
+}
+
+//main-container全局样式
+.app-container {
+  padding: 20px;
+}
+
+.components-container {
+  margin: 30px 50px;
+  position: relative;
+}
+
+.pagination-container {
+  margin-top: 30px;
+}
+
+.text-center {
+  text-align: center
+}
+
+.sub-navbar {
+  height: 50px;
+  line-height: 50px;
+  position: relative;
+  width: 100%;
+  text-align: right;
+  padding-right: 20px;
+  transition: 600ms ease position;
+  background: linear-gradient(90deg, rgba(32, 182, 249, 1) 0%, rgba(32, 182, 249, 1) 0%, rgba(33, 120, 241, 1) 100%, rgba(33, 120, 241, 1) 100%);
+
+  .subtitle {
+    font-size: 20px;
+    color: #fff;
+  }
+
+  &.draft {
+    background: #d0d0d0;
+  }
+
+  &.deleted {
+    background: #d0d0d0;
+  }
+}
+
+.link-type,
+.link-type:focus {
+  color: #337ab7;
+  cursor: pointer;
+
+  &:hover {
+    color: rgb(32, 160, 255);
+  }
+}
+
+.filter-container {
+  padding-bottom: 10px;
+
+  .filter-item {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 10px;
+  }
+}
+
+//refine vue-multiselect plugin
+.multiselect {
+  line-height: 16px;
+}
+
+.multiselect--active {
+  z-index: 1000 !important;
+}
+
+.link-left {
+  margin-left: 5px;
+}
+
+.question-item-label {
+  margin-top: 10px;
+  margin-bottom: 10px !important;
+}
+
+.question-item-remove {
+  margin-left: 20px;
+}
+
+.question-item-content-input {
+  margin-left: 8px;
+  width: 60%;
+}
+
+.question-item-span {
+  vertical-align: middle;
+  font-size: 14px;
+  color: #606266;
+  font-weight: 700;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin-left: 10px;
+}
+
+.question-item-rate {
+  line-height: 2.5;
+}
+
+.q-title {
+  margin: 0px 5px;
+
+  p {
+    display: inline !important;
+  }
+}
+
+
+.q-content {
+  p {
+    display: inline !important;
+  }
+}
+
+.q-item-prefix {
+  margin: 5px 10px;
+}
+
+.q-item-contain {
+  display: inline-block;
+}
+
+.q-item-content {
+  margin: 5px;
+  white-space: normal;
+
+  p {
+    display: inline !important;
+  }
+}
+
+.gapfilling-span {
+  color: red;
+  padding: 0px 30px;
+  margin: 0px 5px;
+  border-bottom: 3px double red;
+}
+
+.exampaper-item-box {
+  margin-top: 20px;
+}
+
+.exampaper-item {
+  margin: 5px 0px;
+}
+
+.ueditor-p {
+  display: inline !important;
+}
