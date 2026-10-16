@@ -190,7 +190,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <!-- src/test 下仍有 JUnit4 写法的残留类，启动与打包时用 -Dmaven.test.skip=true 跳过测试编译；
+                         这里不再全局 skipTests，改由 maven.test.skip 控制，保证 mvn test 可正常执行 -->
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
         </plugins>

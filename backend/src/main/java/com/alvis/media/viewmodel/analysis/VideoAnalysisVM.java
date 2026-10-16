@@ -34,4 +34,16 @@ public class VideoAnalysisVM {
 
     /** 票房 TOP 影片 */
     private List<VideoInfo> topRevenue;
+
+    /** 国家/地区分布 */
+    private List<KeyValue> countryDistribution;
+
+    /** 制作公司 TOP */
+    private List<KeyValue> studioTop;
+
+    /** 原作来源分布 */
+    private List<KeyValue> sourceDistribution;
+
+    /** 动画类型分布（TV/Movie/OVA...） */
+    private List<KeyValue> typeDistribution;
 }

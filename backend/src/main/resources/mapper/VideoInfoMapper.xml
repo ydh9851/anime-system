@@ -22,11 +22,17 @@
     <result column="original_language" jdbcType="VARCHAR" property="originalLanguage" />
     <result column="poster_path" jdbcType="VARCHAR" property="posterPath" />
     <result column="heat_score" jdbcType="DOUBLE" property="heatScore" />
+    <result column="studios" jdbcType="VARCHAR" property="studios" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="source" jdbcType="VARCHAR" property="source" />
+    <result column="premiered" jdbcType="VARCHAR" property="premiered" />
+    <result column="video_type" jdbcType="VARCHAR" property="videoType" />
   </resultMap>
   <sql id="Base_Column_List">
     video_id, video_name, video_category, create_time, creator_id, last_modify_time,
     video_url, original_title, overview, tagline, budget, revenue, popularity, vote_average,
-    vote_count, runtime, release_date, original_language, poster_path, heat_score
+    vote_count, runtime, release_date, original_language, poster_path, heat_score,
+    studios, country, source, premiered, video_type
   </sql>
   <select id="selectNewVideoCount" parameterType="com.alvis.media.domain.VideoInfo" resultType="java.lang.Integer">
     SELECT
@@ -394,6 +400,52 @@
     FROM t_video_info
     WHERE video_id IN
     <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+  </select>
+
+  <select id="selectByNameLike" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List"/>
+    FROM t_video_info
+    WHERE video_name LIKE concat('%', #{name,jdbcType=VARCHAR}, '%')
+    ORDER BY heat_score DESC, video_id DESC
+    LIMIT #{limit,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectCountryDistribution" resultType="com.alvis.media.domain.other.KeyValue">
+    SELECT country AS name, COUNT(*) AS value
+    FROM t_video_info
+    WHERE country IS NOT NULL AND country != ''
+    GROUP BY country
+    ORDER BY value DESC
+  </select>
+
+  <select id="selectStudioTop" resultType="com.alvis.media.domain.other.KeyValue">
+    SELECT studios AS name, COUNT(*) AS value
+    FROM t_video_info
+    WHERE studios IS NOT NULL AND studios != ''
+    GROUP BY studios
+    ORDER BY value DESC
+    LIMIT #{limit}
+  </select>
+
+  <select id="selectSourceDistribution" resultType="com.alvis.media.domain.other.KeyValue">
+    SELECT source AS name, COUNT(*) AS value
+    FROM t_video_info
+    WHERE source IS NOT NULL AND source != ''
+    GROUP BY source
+    ORDER BY value DESC
+    LIMIT 12
+  </select>
+
+  <select id="selectTypeDistribution" resultType="com.alvis.media.domain.other.KeyValue">
+    SELECT video_type AS name, COUNT(*) AS value
+    FROM t_video_info
+    WHERE video_type IS NOT NULL AND video_type != ''
+    GROUP BY video_type
+    ORDER BY value DESC
+  </select>
+
+  <select id="countAll" resultType="java.lang.Integer">
+    SELECT COUNT(1) FROM t_video_info
   </select>
 
 </mapper>

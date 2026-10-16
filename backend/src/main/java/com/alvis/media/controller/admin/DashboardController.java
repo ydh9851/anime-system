@@ -5,13 +5,16 @@ import com.alvis.media.base.RestResponse;
 import com.alvis.media.domain.User;
 import com.alvis.media.domain.VideoInfo;
 import com.alvis.media.domain.VideoPlay;
+import com.alvis.media.repository.VideoInfoMapper;
 import com.alvis.media.service.UserEventLogService;
 import com.alvis.media.service.UserService;
 import com.alvis.media.service.VideoInfoService;
 import com.alvis.media.service.VideoPlayService;
 import com.alvis.media.utility.DateTimeUtil;
+import com.alvis.media.viewmodel.admin.dashboard.DistributionVM;
 import com.alvis.media.viewmodel.admin.dashboard.IndexVM;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +31,7 @@ public class DashboardController extends BaseApiController {
     private final VideoInfoService videoInfoService;
     private final VideoPlayService videoPlayService;
     private final UserEventLogService userEventLogService;
+    private final VideoInfoMapper videoInfoMapper;
 
 
     @RequestMapping(value = "/index", method = RequestMethod.POST)
@@ -43,19 +47,17 @@ public class DashboardController extends BaseApiController {
 
 
 
-       // 查询本月新增视频数
+       // 动漫库总数。本工程的 t_video_info 是一次性全量导入的（24905 部），
+       // 统计「本月新增」恒为 0、没有展示价值，因此这里展示库内总量。
+       int videoTotal = videoInfoService.countAll();
+       vm.setVideoTotal(videoTotal);
+
+       // 查询本月视频播放数
        // 1.调用service 去数据库查找数据
-        int newVideoCount = videoInfoService.selectNewVideoCount(new VideoInfo());
+       int videoPlayCount = videoPlayService.selectVideoPlayCount(new VideoPlay());
 
        // 2.封装返回信息
-       vm.setNewVideoCount(newVideoCount);
-
-        // 查询本月视频播放数
-        // 1.调用service 去数据库查找数据
-        int videoPlayCount = videoPlayService.selectVideoPlayCount(new VideoPlay());
-
-        // 2.封装返回信息
-        vm.setDoPlayVideoCount(videoPlayCount);
+       vm.setDoPlayVideoCount(videoPlayCount);
 
         // 查询本月最佳影片
         // 1.调用service 去数据库查找数据
@@ -80,6 +82,23 @@ public class DashboardController extends BaseApiController {
     @RequestMapping(value = "/heat-top", method = RequestMethod.POST)
     public RestResponse<List<VideoInfo>> heatTop(@RequestParam(defaultValue = "10") Integer limit) {
         return RestResponse.ok(videoInfoService.heatTop(limit));
+    }
+
+    /**
+     * 首页看板可视化分布数据（RESTful 查询用GET，不涉及写操作故未用 POST）。
+     *
+     * 复用 VideoInfoMapper 里已有的统计 SQL，不新增查询逻辑：
+     * yearDistribution -> 柱状图；typeDistribution / genreDistribution -> 饼图；topRevenue -> 横向柱状图。
+     */
+    @GetMapping("/distribution")
+    public RestResponse<DistributionVM> distribution() {
+        DistributionVM vm = new DistributionVM();
+        vm.setYearDistribution(videoInfoMapper.selectYearDistribution());
+        vm.setTypeDistribution(videoInfoMapper.selectTypeDistribution());
+        vm.setGenreDistribution(videoInfoMapper.selectGenreDistribution());
+        vm.setLanguageDistribution(videoInfoMapper.selectLanguageDistribution());
+        vm.setTopRevenue(videoInfoMapper.selectTopRevenue(10));
+        return RestResponse.ok(vm);
     }
 
     @RequestMapping(value = "/recalculate-heat", method = RequestMethod.POST)

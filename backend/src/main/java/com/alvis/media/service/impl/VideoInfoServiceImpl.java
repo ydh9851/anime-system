@@ -1,11 +1,14 @@
 package com.alvis.media.service.impl;
 
+import com.alvis.media.domain.Tag;
 import com.alvis.media.domain.VideoInfo;
 import com.alvis.media.domain.VideoPlay;
 import com.alvis.media.repository.MediaBaseMapper;
 import com.alvis.media.repository.VideoInfoMapper;
 import com.alvis.media.repository.VideoPlayMapper;
+import com.alvis.media.service.UserVideoOperationService;
 import com.alvis.media.service.VideoInfoService;
+import com.alvis.media.service.VideoTagService;
 import com.alvis.media.utility.DateTimeUtil;
 import com.alvis.media.utility.UserCFUtil;
 import com.alvis.media.viewmodel.video.VideoPageRequestVM;
@@ -13,6 +16,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,13 +33,21 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
 
     private final VideoInfoMapper videoInfoMapper;
     private final VideoPlayMapper videoPlayMapper;
+    private final VideoTagService videoTagService;
+    private final UserVideoOperationService userVideoOperationService;
 
 
     @Autowired
-    public VideoInfoServiceImpl(VideoInfoMapper videoInfoMapper, VideoPlayMapper videoPlayMapper, MediaBaseMapper<VideoInfo> videoInfoMapperr) {
+    public VideoInfoServiceImpl(VideoInfoMapper videoInfoMapper,
+                                VideoPlayMapper videoPlayMapper,
+                                MediaBaseMapper<VideoInfo> videoInfoMapperr,
+                                VideoTagService videoTagService,
+                                UserVideoOperationService userVideoOperationService) {
         super(videoInfoMapperr);
         this.videoInfoMapper = videoInfoMapper;
         this.videoPlayMapper = videoPlayMapper;
+        this.videoTagService = videoTagService;
+        this.userVideoOperationService = userVideoOperationService;
 
     }
 
@@ -56,6 +68,11 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
         filter.setCreateTime(DateTimeUtil.getMonthStartDay());
         // 调用dao 并返回
         return videoInfoMapper.selectNewVideoCount(filter);
+    }
+
+    @Override
+    public int countAll() {
+        return videoInfoMapper.countAll();
     }
 
     @Override
@@ -197,6 +214,51 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
     public List<VideoInfo> heatTop(Integer limit) {
         if (limit == null || limit <= 0) limit = 10;
         return videoInfoMapper.selectHeatTop(limit);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int updateVideo(VideoInfo record, List<Tag> tagList) {
+        if (record == null || record.getVideoId() == null) {
+            return 0;
+        }
+        record.setLastModifyTime(new Date());
+        int affected = videoInfoMapper.updateByPrimaryKeySelective(record);
+        // tagList 为 null 表示本次不改动标签；传空集合表示清空标签
+        if (tagList != null) {
+            videoTagService.replaceTags(record.getVideoId(), tagList);
+        }
+        return affected;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteVideo(Integer videoId) {
+        if (videoId == null) {
+            return false;
+        }
+        if (videoInfoMapper.selectByPrimaryKey(videoId) == null) {
+            return false;
+        }
+        // 外键均为 RESTRICT：必须「先子表后主表」，否则抛 SQLIntegrityConstraintViolationException
+        videoTagService.deleteByVideoId(videoId);
+        videoPlayMapper.deleteByVideoId(videoId);
+        userVideoOperationService.deleteByVideoId(videoId);
+        return videoInfoMapper.deleteByPrimaryKey(videoId) > 0;
+    }
+
+    @Override
+    public List<VideoInfo> selectByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return videoInfoMapper.selectByIds(ids);
+    }
+
+    @Override
+    public List<VideoInfo> selectByNameLike(String name, Integer limit) {
+        int max = (limit == null || limit <= 0) ? 20 : Math.min(limit, 100);
+        return videoInfoMapper.selectByNameLike(StringUtils.defaultString(name).trim(), max);
     }
 
 //    @Override

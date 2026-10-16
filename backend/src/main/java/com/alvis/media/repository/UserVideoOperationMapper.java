@@ -4,6 +4,7 @@ import com.alvis.media.domain.UserVideoOperation;
 import com.alvis.media.domain.UserVideoOperationKey;
 import com.alvis.media.domain.other.KeyValue;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -31,4 +32,12 @@ public interface UserVideoOperationMapper {
 
     @Select("SELECT * FROM t_user_video_operation WHERE id = #{userId} AND collection = 1")
     List<UserVideoOperation> selectCollections(Integer userId);
+
+    /**
+     * 按动漫 id 删除全部收藏/评分记录（删除动漫时先清子表，满足外键约束）
+     *
+     * @param videoId 动漫 id
+     * @return 受影响行数
+     */
+    int deleteByVideoId(@Param("videoId") Integer videoId);
 }

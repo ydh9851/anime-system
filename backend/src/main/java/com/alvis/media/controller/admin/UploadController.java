@@ -3,6 +3,7 @@ package com.alvis.media.controller.admin;
 
 import com.alvis.media.base.BaseApiController;
 import com.alvis.media.base.RestResponse;
+import com.alvis.media.base.SystemCode;
 import com.alvis.media.configuration.property.SystemConfig;
 import com.alvis.media.service.FileUpload;
 import com.alvis.media.service.UserService;
@@ -21,6 +22,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,33 +43,18 @@ public class UploadController extends BaseApiController {
     private static final String IMAGE_UPLOAD_FILE = "upFile";
     private final UserService userService;
 
+    /**
+     * UEditor 富编辑器「配置 + 上传」聚合接口。
+     *
+     * 注意：返回体是 UEditor 前端约定的扁平结构（state / url 等），
+     * 不套RestResponse —— 这是第三方组件协议，改成统一包装会导致编辑器取不到 url。
+     * 上传失败时返回 state=FAIL 而不是 null，避免前端拿到 undefined 报未知错误。
+     */
     @ResponseBody
     @RequestMapping("/configAndUpload")
     public Object upload(HttpServletRequest request, HttpServletResponse response) {
         String action = request.getParameter("action");
-        if (action.equals(IMAGE_UPLOAD)) {
-            try {
-                MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
-                MultipartFile multipartFile = multipartHttpServletRequest.getFile(IMAGE_UPLOAD_FILE);
-                long attachSize = multipartFile.getSize();
-                String imgName = multipartFile.getOriginalFilename();
-                String filePath;
-                try (InputStream inputStream = multipartFile.getInputStream()) {
-                    filePath = fileUpload.uploadFile(inputStream, attachSize, imgName);
-                }
-                String imageType = imgName.substring(imgName.lastIndexOf("."));
-                UploadResultVM uploadResultVM = new UploadResultVM();
-                uploadResultVM.setOriginal(imgName);
-                uploadResultVM.setName(imgName);
-                uploadResultVM.setUrl(filePath);
-                uploadResultVM.setSize(multipartFile.getSize());
-                uploadResultVM.setType(imageType);
-                uploadResultVM.setState("SUCCESS");
-                return uploadResultVM;
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        } else {
+        if (!IMAGE_UPLOAD.equals(action)) {
             UeditorConfigVM ueditorConfigVM = new UeditorConfigVM();
             ueditorConfigVM.setImageActionName(IMAGE_UPLOAD);
             ueditorConfigVM.setImageFieldName(IMAGE_UPLOAD_FILE);
@@ -79,70 +67,97 @@ public class UploadController extends BaseApiController {
             ueditorConfigVM.setImagePathFormat("");
             return ueditorConfigVM;
         }
-        return null;
+
+        UploadResultVM result = new UploadResultVM();
+        try {
+            MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
+            MultipartFile multipartFile = multipartHttpServletRequest.getFile(IMAGE_UPLOAD_FILE);
+            if (multipartFile == null || multipartFile.isEmpty()) {
+                result.setState("FAIL");
+                logger.warn("UEditor 上传未收到文件");
+                return result;
+            }
+            String imgName = multipartFile.getOriginalFilename();
+            String filePath;
+            try (InputStream inputStream = multipartFile.getInputStream()) {
+                filePath = fileUpload.uploadFile(inputStream, multipartFile.getSize(), imgName);
+            }
+            result.setOriginal(imgName);
+            result.setName(imgName);
+            result.setUrl(filePath);
+            result.setSize(multipartFile.getSize());
+            result.setType(imgName.substring(imgName.lastIndexOf(".")));
+            result.setState("SUCCESS");
+        } catch (IOException | IllegalArgumentException e) {
+            // 详细信息只进日志，响应体不暴露服务器路径
+            logger.error("UEditor 图片上传失败", e);
+            result.setState("FAIL");
+        }
+        return result;
     }
 
 
-    @RequestMapping("/image")
+    @PostMapping("/image")
     @ResponseBody
-    public RestResponse questionUploadAndReadExcel(HttpServletRequest request) {
+    public RestResponse<String> questionUploadAndReadExcel(HttpServletRequest request) {
         MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
         MultipartFile multipartFile = multipartHttpServletRequest.getFile("file");
-        long attachSize = multipartFile.getSize();
-        String imgName = multipartFile.getOriginalFilename();
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            return RestResponse.fail(SystemCode.ParameterValidError.getCode(), "请选择要上传的图片");
+        }
         try (InputStream inputStream = multipartFile.getInputStream()) {
-            String filePath = fileUpload.uploadFile(inputStream, attachSize, imgName);
+            String filePath = fileUpload.uploadFile(inputStream, multipartFile.getSize(), multipartFile.getOriginalFilename());
+            if (filePath == null) {
+                return RestResponse.fail(SystemCode.InnerError.getCode(), "图片上传失败");
+            }
             userService.changePicture(getCurrentUser(), filePath);
             return RestResponse.ok(filePath);
-        } catch (IOException e) {
-            return RestResponse.fail(2, e.getMessage());
+        } catch (IOException | IllegalArgumentException e) {
+            // 异常信息可能含服务器绝对路径，只进日志不对外返回
+            logger.error("头像上传失败", e);
+            return RestResponse.fail(SystemCode.InnerError.getCode(), "图片上传失败");
         }
     }
 
-    @RequestMapping("/auth")
+    @GetMapping("/auth")
     @ResponseBody
-    public RestResponse auth() {
+    public RestResponse<Void> auth() {
         return RestResponse.ok();
     }
 
-    //实现接收的方法
-    @CrossOrigin
+    /**
+     * 视频文件上传：按 SavePath 落盘，返回重构后的文件名与可访问路径。
+     */
     @PostMapping(value = "/uploadVidoe")
     @ResponseBody
-    public Map <String,String> savaVideo(@RequestParam("file") MultipartFile file, @RequestParam String SavePath)
-            throws IllegalStateException {
-        Map<String,String> resultMap = new HashMap <>();
-        try{
-            //获取文件后缀，因此此后端代码可接收一切文件，上传格式前端限定
-            String fileExt = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1)
-                    .toLowerCase();
-            // 重构文件名称
-            String pikId = UUID.randomUUID().toString().replaceAll("-", "");
-            String newVidoeName = pikId + "." + fileExt;
-            //保存视频
+    public RestResponse<Map<String, String>> savaVideo(@RequestParam("file") MultipartFile file,
+                                                     @RequestParam String SavePath) {
+        Map<String, String> resultMap = new HashMap<>();
+        if (file == null || file.isEmpty()) {
+            return RestResponse.fail(SystemCode.ParameterValidError.getCode(), "请选择要上传的视频");
+        }
+        String originalName = file.getOriginalFilename();
+        try {
+            // 取扩展名，重构文件名，避免同名覆盖
+            String fileExt = originalName.substring(originalName.lastIndexOf(".") + 1).toLowerCase();
+            String newVidoeName = UUID.randomUUID().toString().replace("-", "") + "." + fileExt;
             File fileSave = new File(SavePath, newVidoeName);
             // 目录不存在时自动创建，否则 transferTo 会报“系统找不到指定的路径”导致上传失败
             File parentDir = fileSave.getParentFile();
-            if (parentDir != null && !parentDir.exists()) {
-                parentDir.mkdirs();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                throw new IOException("创建目录失败");
             }
-            file.transferTo(fileSave);
-            //构造Map将视频信息返回给前端
-            //视频名称重构后的名称
-            resultMap.put("newVidoeName",newVidoeName);
-            //正确保存视频则设置返回码为200
-            resultMap.put("resCode","200");
-            //返回视频保存路径
-            resultMap.put("VideoUrl",SavePath + "/" + newVidoeName);
-            return  resultMap;
-
-        }catch (Exception e){
-
-            logger.error("视频上传失败, SavePath={}, 文件名={}", SavePath, file.getOriginalFilename(), e);
-            //保存视频错误则设置返回码为400
-            resultMap.put("resCode","400");
-            return  resultMap ;
-
+            // 用流拷贝而非 transferTo：Undertow 的 transferTo 在临时文件清理时序下会抛
+            // NoSuchFileException，这里保证两种容器行为一致
+            try (InputStream in = file.getInputStream()) {
+                Files.copy(in, fileSave.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            resultMap.put("newVidoeName", newVidoeName);
+            resultMap.put("VideoUrl", SavePath + "/" + newVidoeName);
+            return RestResponse.ok(resultMap);
+        } catch (Exception e) {
+            logger.error("视频上传失败, SavePath={}, 文件名={}", SavePath, originalName, e);
+            return RestResponse.fail(SystemCode.InnerError.getCode(), "视频上传失败");
         }
     }
 }

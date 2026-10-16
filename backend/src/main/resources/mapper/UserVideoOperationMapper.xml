@@ -164,4 +164,9 @@
     WHERE rating IS NOT NULL
   </select>
 
+<delete id="deleteByVideoId" parameterType="java.lang.Integer">
+    delete from t_user_video_operation
+    where video_id = #{videoId,jdbcType=INTEGER}
+  </delete>
+
 </mapper>

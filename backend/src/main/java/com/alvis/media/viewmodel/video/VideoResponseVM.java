@@ -1,9 +1,12 @@
 package com.alvis.media.viewmodel.video;
 
+import com.alvis.media.domain.Tag;
 import com.alvis.media.domain.VideoInfo;
 import com.alvis.media.utility.DateTimeUtil;
 import com.alvis.media.viewmodel.BaseVM;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  *@author 奇趣
@@ -56,6 +59,19 @@ public class VideoResponseVM extends BaseVM {
 
     // 仅保留年份字符串，避免 Date -> String 映射问题
     private String releaseYear;
+
+    // ===== 数据集增强字段 =====
+    private String studios;
+
+    private String country;
+
+    private String source;
+
+    private String premiered;
+
+    private String videoType;
+
+    private List<Tag> videoTagList;
 
     public static VideoResponseVM from(VideoInfo videoInfo) {
         VideoResponseVM vm = modelMapper.map(videoInfo, VideoResponseVM.class);

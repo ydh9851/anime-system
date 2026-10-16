@@ -6,8 +6,9 @@ logging:
   path: /usr/log/exam/
 
 spring:
-  redis:
-    host: localhost
+  data:
+    redis:
+      host: localhost
   datasource:
     url: jdbc:mysql://localhost:3306/anime_mangage_db?useSSL=false&useUnicode=true&serverTimezone=UTC&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
     username: root

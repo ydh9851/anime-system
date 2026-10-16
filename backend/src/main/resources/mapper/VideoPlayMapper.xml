@@ -140,4 +140,9 @@
     </set>
     where video_id = #{videoId,jdbcType=INTEGER} and user_Id = #{userId}
   </update>
+<delete id="deleteByVideoId" parameterType="java.lang.Integer">
+    delete from t_video_play
+    where video_id = #{videoId,jdbcType=INTEGER}
+  </delete>
+
 </mapper>

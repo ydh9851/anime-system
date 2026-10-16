@@ -23,6 +23,14 @@ system:
     path: '../.venv/Scripts/python.exe'
     script: '../algorithm/recommendation/recommend_api.py'
     predictScript: '../algorithm/prediction/predict_api.py'
+    # 模型管理模块：训练 + 评估脚本（供 POST /api/admin/model/train 异步调用）
+    trainScript: '../algorithm/prediction/train_eval_api.py'
+  dataset:
+    # 数据集上传落盘目录（相对 backend 目录）
+    dir: '../data/dataset'
+  upload:
+    # 未配置七牛云时，文件上传回退到本地目录
+    local-dir: '../data/upload'
   eda:
     # 动漫 EDA 图输出目录（algorithm/eda/eda_anime.py 生成）
     # 通过 /eda/** 暴露给前端「动漫数据探索」页面；重跑 Python 后无需重启后端即可看到新图

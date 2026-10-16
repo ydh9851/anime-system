@@ -31,6 +31,9 @@ public interface VideoInfoMapper extends MediaBaseMapper <VideoInfo> {
      */
     int selectNewVideoCount(VideoInfo filter);
 
+    /** 动漫库总数（全量，不是本月增量） */
+    int countAll();
+
     /**
      *get videoId by video url from
      * @param
@@ -60,4 +63,18 @@ public interface VideoInfoMapper extends MediaBaseMapper <VideoInfo> {
     List<VideoInfo> selectAll();
 
     List<VideoInfo> selectByIds(@Param("ids") List<Integer> ids);
+
+    /**
+     * 按名称模糊查询动漫（下拉选择用，限制返回条数）
+     *
+     * @param name   动漫名称关键字
+     * @param limit  返回条数上限
+     * @return List<VideoInfo>
+     */
+    List<VideoInfo> selectByNameLike(@Param("name") String name, @Param("limit") Integer limit);
+
+    List<KeyValue> selectCountryDistribution();
+    List<KeyValue> selectStudioTop(@Param("limit") Integer limit);
+    List<KeyValue> selectSourceDistribution();
+    List<KeyValue> selectTypeDistribution();
 }

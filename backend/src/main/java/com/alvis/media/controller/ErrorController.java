@@ -1,26 +1,26 @@
 package com.alvis.media.controller;
 
+import com.alvis.media.base.RestResponse;
 import com.alvis.media.base.SystemCode;
-import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * 容器级错误出口（未匹配到任何 Controller 时由容器转发到 /error）。
+ * 统一返回 RestResponse，保证前端无论拿到业务异常还是容器异常，
+ * 响应结构都是 {code, message, response}。
+ */
 @RestController
 public class ErrorController implements org.springframework.boot.web.servlet.error.ErrorController {
 
     @RequestMapping(value = "/error", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
-        Map<String, Object> error = new HashMap<>(2);
-        error.put("code", SystemCode.InnerError.getCode());
-        error.put("message", SystemCode.InnerError.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.OK);
+    public RestResponse<Void> error(HttpServletRequest request) {
+        Object status = request.getAttribute("jakarta.servlet.error.status_code");
+        if (status != null && status.toString().startsWith("4")) {
+            return RestResponse.fail(404, "接口或资源不存在");
+        }
+        return RestResponse.fail(SystemCode.InnerError.getCode(), SystemCode.InnerError.getMessage());
     }
 }

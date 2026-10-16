@@ -33,6 +33,13 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     @Value("${system.eda.dir:}")
     private String edaDir;
 
+    /**
+     * 本地上传目录（未配置七牛云时 FileUploadImpl 的落盘位置），
+     * 通过 /api/admin/upload/local/** 暴露，文件名已做白名单与路径穿越校验。
+     */
+    @Value("${system.upload.local-dir:../data/upload}")
+    private String uploadLocalDir;
+
     public WebMvcConfiguration(TokenHandlerInterceptor tokenHandlerInterceptor,
                                SystemConfig systemConfig) {
         this.tokenHandlerInterceptor = tokenHandlerInterceptor;
@@ -57,6 +64,13 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         } else {
             registry.addResourceHandler("/eda/**")
                     .addResourceLocations(edaClasspath)
+                    .setCacheControl(CacheControl.maxAge(Duration.ofMinutes(10)).cachePublic());
+        }
+
+        // 本地上传文件（未配置七牛云时的回退存储位置）
+        if (StringUtils.hasText(uploadLocalDir) && Files.exists(Paths.get(uploadLocalDir))) {
+            registry.addResourceHandler("/api/admin/upload/local/**")
+                    .addResourceLocations(Paths.get(uploadLocalDir).toUri().toString())
                     .setCacheControl(CacheControl.maxAge(Duration.ofMinutes(10)).cachePublic());
         }
 

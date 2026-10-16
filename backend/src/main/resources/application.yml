@@ -42,7 +42,10 @@ system:
     - /api/wx/**
     - /api/admin/upload/configAndUpload
     - /api/admin/upload/auth
+    # 注册页与「用户名是否可注册」查重都需免登录；
+    # 这里必须用 /** 通配，只写精确路径的话 /register/exists 会被 Security 拦成 401
     - /api/student/user/register
+    - /api/student/user/register/**
     - /api/admin/video/**
   pwdKey:
     publicKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQClwwxhJKwStDnu7c0yCRkwTW2VKuLWwyVtFC6Zx9bYdF1qwqSP26CkDwaF6GHayIvv9b8BHlAaQH4SLIPzir062yzNukqspmthUw4gPJhbx1AQrWRoQJSv3/1Sk+tWyJRHXSiCZJZ3216LDhtx42LQ0HItDP8U9BLtsxA+5LEZzQIDAQAB

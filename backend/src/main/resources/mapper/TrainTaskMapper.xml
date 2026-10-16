@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.alvis.media.repository.TrainTaskMapper">
+  <resultMap id="BaseResultMap" type="com.alvis.media.domain.TrainTask">
+    <id column="task_id" jdbcType="BIGINT" property="taskId" />
+    <result column="algo" jdbcType="VARCHAR" property="algo" />
+    <result column="algo_type" jdbcType="VARCHAR" property="algoType" />
+    <result column="dataset_id" jdbcType="INTEGER" property="datasetId" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="progress" jdbcType="INTEGER" property="progress" />
+    <result column="row_count" jdbcType="INTEGER" property="rowCount" />
+    <result column="train_seconds" jdbcType="DOUBLE" property="trainSeconds" />
+    <result column="metrics_json" jdbcType="VARCHAR" property="metricsJson" />
+    <result column="cache_file" jdbcType="VARCHAR" property="cacheFile" />
+    <result column="message" jdbcType="VARCHAR" property="message" />
+    <result column="trace_id" jdbcType="VARCHAR" property="traceId" />
+    <result column="submitter_id" jdbcType="INTEGER" property="submitterId" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    task_id, algo, algo_type, dataset_id, status, progress, row_count, train_seconds,
+    metrics_json, cache_file, message, trace_id, submitter_id, start_time, finish_time, create_time
+  </sql>
+
+  <insert id="insertSelective" parameterType="com.alvis.media.domain.TrainTask">
+    <selectKey keyProperty="taskId" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_train_task
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="algo != null">algo,</if>
+      <if test="algoType != null">algo_type,</if>
+      <if test="datasetId != null">dataset_id,</if>
+      <if test="status != null">status,</if>
+      <if test="progress != null">progress,</if>
+      <if test="rowCount != null">row_count,</if>
+      <if test="message != null">message,</if>
+      <if test="traceId != null">trace_id,</if>
+      <if test="submitterId != null">submitter_id,</if>
+      <if test="startTime != null">start_time,</if>
+      <if test="createTime != null">create_time,</if>
+    </trim>
+    <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+      <if test="algo != null">#{algo,jdbcType=VARCHAR},</if>
+      <if test="algoType != null">#{algoType,jdbcType=VARCHAR},</if>
+      <if test="datasetId != null">#{datasetId,jdbcType=INTEGER},</if>
+      <if test="status != null">#{status,jdbcType=VARCHAR},</if>
+      <if test="progress != null">#{progress,jdbcType=INTEGER},</if>
+      <if test="rowCount != null">#{rowCount,jdbcType=INTEGER},</if>
+      <if test="message != null">#{message,jdbcType=VARCHAR},</if>
+      <if test="traceId != null">#{traceId,jdbcType=VARCHAR},</if>
+      <if test="submitterId != null">#{submitterId,jdbcType=INTEGER},</if>
+      <if test="startTime != null">#{startTime,jdbcType=TIMESTAMP},</if>
+      <if test="createTime != null">#{createTime,jdbcType=TIMESTAMP},</if>
+    </trim>
+  </insert>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from t_train_task
+    where task_id = #{taskId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from t_train_task
+    order by task_id desc
+  </select>
+
+  <select id="countGroupByStatus" resultType="java.util.Map">
+    SELECT status AS name, COUNT(*) AS value
+    FROM t_train_task
+    GROUP BY status
+  </select>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.alvis.media.domain.TrainTask">
+    update t_train_task
+    <set>
+      <if test="status != null">status = #{status,jdbcType=VARCHAR},</if>
+      <if test="progress != null">progress = #{progress,jdbcType=INTEGER},</if>
+      <if test="rowCount != null">row_count = #{rowCount,jdbcType=INTEGER},</if>
+      <if test="trainSeconds != null">train_seconds = #{trainSeconds,jdbcType=DOUBLE},</if>
+      <if test="metricsJson != null">metrics_json = #{metricsJson,jdbcType=VARCHAR},</if>
+      <if test="cacheFile != null">cache_file = #{cacheFile,jdbcType=VARCHAR},</if>
+      <if test="message != null">message = #{message,jdbcType=VARCHAR},</if>
+      <if test="startTime != null">start_time = #{startTime,jdbcType=TIMESTAMP},</if>
+      <if test="finishTime != null">finish_time = #{finishTime,jdbcType=TIMESTAMP},</if>
+    </set>
+    where task_id = #{taskId,jdbcType=BIGINT}
+  </update>
+</mapper>

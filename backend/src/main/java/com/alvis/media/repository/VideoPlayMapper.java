@@ -35,4 +35,12 @@ public interface VideoPlayMapper extends MediaBaseMapper <VideoPlay> {
    List<VideoPlay> selectVideoPlayInfo(VideoPlay filter);
 
     int updateByPrimaryKeySelective(VideoPlay record);
+
+    /**
+     * 按动漫 id 删除全部播放记录（删除动漫时先清子表，满足外键约束）
+     *
+     * @param videoId 动漫 id
+     * @return 受影响行数
+     */
+    int deleteByVideoId(@Param("videoId") Integer videoId);
 }

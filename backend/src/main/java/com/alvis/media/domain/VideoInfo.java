@@ -55,6 +55,16 @@ public class VideoInfo implements Serializable {
 
     private Double heatScore;
 
+    private String studios;
+
+    private String country;
+
+    private String source;
+
+    private String premiered;
+
+    private String videoType;
+
     public Integer getVideoId() {
         return videoId;
     }

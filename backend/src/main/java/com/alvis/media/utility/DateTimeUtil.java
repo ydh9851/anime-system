@@ -97,13 +97,19 @@ public final class DateTimeUtil {
     }
 
 
+    /**
+     * 首页趋势图X 轴标签：本月 1 号 ~ 今天，格式 MM-DD。
+     *
+     * <p>长度必须与 MothStartToNowFormat() / selectMothCount() 产生的数据点个数严格一致
+     * （都等于「今天的日」）。此前这里返回 1~31 整月天数，而数据只有到今天，
+     * ECharts 的 category 轴与 series 对不上，曲线只会画一半、右边留一大片空白。
+     */
     public static List<String> MothDay() {
-        Calendar endCalendar = Calendar.getInstance();
-        endCalendar.setTime(getMonthEndDay());
-        int endMothDay = endCalendar.get(Calendar.DAY_OF_MONTH);
-        List<String> list = new ArrayList<>(endMothDay);
-        for (int i = 1; i <= endMothDay; i++) {
-            list.add(String.valueOf(i));
+        Calendar now = Calendar.getInstance();
+        int today = now.get(Calendar.DAY_OF_MONTH);
+        List<String> list = new ArrayList<>(today);
+        for (int i = 1; i <= today; i++) {
+            list.add(String.format("%02d", i));
         }
         return list;
     }
