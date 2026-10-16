@@ -54,3 +54,7 @@ data/raw/kaggle_rating.csv
 
 # ===== 算法运行临时输出 =====
 result.csv
+
+# ===== 运行时上传目录（通过「数据集管理」页面上传的文件副本，不入库）=====
+data/dataset/
+data/upload/

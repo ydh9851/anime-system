@@ -16,10 +16,18 @@
             </div>
             <p v-if="form.originalTitle" class="sub">{{ form.originalTitle }}</p>
             <div class="chips">
+              <span v-if="countryName" class="chip">🌏 {{ countryName }}</span>
+              <span v-if="form.studios" class="chip">🏢 {{ form.studios }}</span>
+              <span v-if="sourceName" class="chip">📖 {{ sourceName }}</span>
+              <span v-if="form.premiered" class="chip">🗓 {{ form.premiered }}</span>
               <span v-if="langName" class="chip">🗣 {{ langName }}</span>
               <span v-if="form.releaseYear" class="chip">📅 {{ form.releaseYear }} 年</span>
               <span v-if="form.runtime" class="chip">⏱ {{ form.runtime }} 分钟</span>
               <span v-if="form.budget" class="chip">📺 {{ form.budget }} 集</span>
+            </div>
+
+            <div v-if="form.videoTagList && form.videoTagList.length" class="tags-row">
+              <el-tag v-for="t in form.videoTagList" :key="t.tagId" size="small" effect="plain" class="genre-tag">{{ t.tagName }}</el-tag>
             </div>
 
             <div class="score-row">
@@ -93,6 +101,14 @@ const LANG_MAP = {
   sv: '瑞典语', da: '丹麦语', ar: '阿拉伯语', nl: '荷兰语', no: '挪威语', pl: '波兰语'
 }
 
+const COUNTRY_MAP = { JP: '日本', CN: '中国', KR: '韩国' }
+
+const SOURCE_MAP = {
+  Original: '原创', Manga: '漫画', Novel: '小说', 'Light novel': '轻小说',
+  'Web manga': '网络漫画', Game: '游戏', 'Visual novel': '视觉小说',
+  Music: '音乐', 'Picture book': '绘本', 'Other': '其他', '4-koma manga': '四格漫画'
+}
+
 export default {
   name: 'VideoDetail',
   data () {
@@ -113,6 +129,14 @@ export default {
     },
     langName () {
       return this.form.originalLanguage ? (LANG_MAP[this.form.originalLanguage] || this.form.originalLanguage) : ''
+    },
+    countryName () {
+      const c = this.form.country
+      return c ? (COUNTRY_MAP[c] || c) : ''
+    },
+    sourceName () {
+      const s = this.form.source
+      return s ? (SOURCE_MAP[s] || s) : ''
     },
     categoryName () {
       if (this.form.videoCategory == null) return ''
@@ -176,6 +200,9 @@ export default {
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .chip { font-size: 12px; padding: 5px 12px; border-radius: 999px; color: #475569; background: #f1f5f9; }
+
+.tags-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.genre-tag { color: #7c3aed; border-color: rgba(168,85,247,.35); background: rgba(168,85,247,.06); margin-right: 0; }
 
 .score-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 14px 18px; border-radius: 16px; background: linear-gradient(135deg, rgba(255,95,158,.08), rgba(168,85,247,.08)); margin-bottom: 16px; }
 .score-main { display: flex; flex-direction: column; align-items: center; }

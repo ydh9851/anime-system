@@ -62,7 +62,7 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.formLoading = true
-          videoApi.editVideo(this.form).then(data => {
+          videoApi.editVideo(this.form.videoId, this.form).then(data => {
             if (data.code === 1) {
               _this.$message.success(data.message)
               _this.delCurrentView(_this).then(() => {

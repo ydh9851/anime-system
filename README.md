@@ -123,6 +123,17 @@ anime-system/                          # 系统根目录（整个目录拷贝到
    mysql -uroot -p123456 < sql/anime_mangage_db.sql
    ```
    > 若 `t_video_info` 字段缺失，可再执行 `sql/_recreate_video_info.sql` 重建该表。
+   > 全量 24905 部动漫的增强数据（`studios` 制作公司、`country` 国家/地区、`source` 原作来源、
+   > `premiered` 首播季度、`video_type` 动画类型、`poster_path` 海报等）由
+   > `scripts/data_prep/build_full_dataset.py` 幂等构建，重复执行不会破坏外键关联。
+   ```bash
+   .venv\Scripts\python.exe scripts/data_prep/build_full_dataset.py --host 127.0.0.1 --user root --password 123456 --db anime_mangage_db
+   ```
+   > 「数据集 / 模型管理」模块的两张新表与索引优化脚本（均幂等，可重复执行）：
+   ```bash
+   mysql -uroot -p123456 < sql/dataset_model_schema.sql   # t_dataset / t_train_task
+   mysql -uroot -p123456 < sql/optimize_schema.sql         # wx_open_id 字段长度 + 业务索引
+   ```
 4. 把 Kaggle 动漫数据导入业务库：
    ```bash
    .venv\Scripts\python.exe sql/import_data.py --password 123456
@@ -255,6 +266,12 @@ Set-Location ..
 
 # 4. 热度预测引擎冒烟测试
 .venv\Scripts\python.exe algorithm/prediction/predict_api.py --model rf --budget 12 --popularity 50000 --runtime 24 --language ja --status TV
+
+# 5. 模型训练 + 评估（供后端「在线训练与评估」接口异步调用，输出单行 JSON）
+.venv\Scripts\python.exe algorithm/prediction/train_eval_api.py --model rf
+
+# 6. 刷新用户行为数据到最近 30 天（首页看板的播放量/活跃度趋势依赖它）
+.venv\Scripts\python.exe scripts/data_prep/refresh_activity_data.py
 ```
 
 **注意事项**

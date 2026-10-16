@@ -183,11 +183,11 @@ const constantRoutes = [
         component: () => import('@/views/analysis/screen'),
         name: 'Screen',
         meta: {
-          title: '数据可视化分析',
+          title: '数据可视化大屏',
+          icon: 'screen',
           noCache: true,
           activeMenu: '/analysis/list'
-        },
-        hidden: true
+        }
       }
     ]
   },
@@ -234,6 +234,30 @@ const constantRoutes = [
     ]
   },
 
+  {
+    path: '/model',
+    component: Layout,
+    name: 'ModelPage',
+    meta: {
+      title: '模型管理',
+      icon: 'component'
+    },
+    alwaysShow: true,
+    children: [
+      {
+        path: 'dataset',
+        component: () => import('@/views/dataset/index'),
+        name: 'DatasetPage',
+        meta: { title: '数据集管理', noCache: true }
+      },
+      {
+        path: 'train',
+        component: () => import('@/views/model/index'),
+        name: 'ModelTrainPage',
+        meta: { title: '在线训练与评估', noCache: true }
+      }
+    ]
+  },
   {
     path: '/profile',
     component: Layout,

@@ -29,12 +29,12 @@ export default {
     // https://vuejs.org/v2/style-guide/index.html#Private-property-names-essential
     $_resizeHandler () {
       return debounce(() => {
-        if (this.echartsUserAction) {
-          this.echartsUserAction.resize()
-        }
-        if (this.echartsQuestion) {
-          this.echartsQuestion.resize()
-        }
+        // 遍历所有图表实例，新增图表只需在 data 里注册即可，无需改这里
+        ;['echartsUserAction', 'echartsQuestion', 'echartsYearBar', 'echartsTypePie'].forEach(key => {
+          if (this[key]) {
+            this[key].resize()
+          }
+        })
       }, 100)()
     },
     $_initResizeEvent () {

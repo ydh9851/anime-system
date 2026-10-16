@@ -153,7 +153,9 @@ export default {
           loginApi.login(this.loginForm).then(function (result) {
             if (result && result.code === 1) {
               _this.setUserName(_this.loginForm.userName)
-              _this.$router.push({ path: '/' })
+              // 登录前被守卫拦截的页面会带 redirect 参数，登录后回到原页面
+              const redirect = _this.$route.query.redirect || '/'
+              _this.$router.replace({ path: redirect })
             } else {
               _this.loading = false
               _this.$message({

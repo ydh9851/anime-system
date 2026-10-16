@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" v-loading="loading">
     <el-alert type="primary" :closable="false" show-icon style="margin-bottom:14px"
               title="用户属性分析：统计追番用户的属性与评分行为（数据源 t_user_video_operation 用户评分行为表 + t_user）。配套底层算法：动漫用户画像（Personal_SVD / UserKNN / SVD 等基于用户历史评分）。"/>
 
@@ -47,7 +47,8 @@ export default {
       countDist: [],
       avgDist: [],
       statCards: [],
-      charts: []
+      charts: [],
+      loading: true
     }
   },
   mounted () {
@@ -60,6 +61,7 @@ export default {
   },
   methods: {
     loadData () {
+      this.loading = true
       analysisApi.userOverview().then(re => {
         const d = re.response || {}
         this.stats = d.stats || {}
@@ -74,7 +76,11 @@ export default {
           this.renderCount()
           this.renderAvg()
         })
-      }).catch(() => {})
+        this.loading = false
+      }).catch(() => {
+        // 错误提示由响应拦截器统一弹出，这里保证失败后不会停在骨架屏
+        this.loading = false
+      })
     },
     buildStatCards () {
       const s = this.stats

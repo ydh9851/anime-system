@@ -33,7 +33,10 @@ export default {
   },
   methods: {
     load () {
-      collectionApi.list().then(re => { this.list = re.response || [] }).catch(() => {})
+      collectionApi.list().then(re => { this.list = re.response || [] }).catch(() => {
+        // 错误提示由响应拦截器统一弹出，这里兜底为空列表
+        this.list = []
+      })
     },
     poster (item) {
       const p = item.posterPath

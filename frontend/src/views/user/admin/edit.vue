@@ -94,7 +94,12 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.formLoading = true
-          userApi.createUser(this.form).then(data => {
+          // 有 id 走修改（PUT /api/admin/user/{id}），无 id 走新增（POST /api/admin/user）
+          const isEdit = !!_this.form.id
+          const request = isEdit
+            ? userApi.updateUserById(_this.form.id, _this.form)
+            : userApi.createUser(_this.form)
+          request.then(data => {
             if (data.code === 1) {
               _this.$message.success(data.message)
               _this.delCurrentView(_this).then(() => {

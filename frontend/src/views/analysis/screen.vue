@@ -1,5 +1,5 @@
 <template>
-  <div class="screen-board">
+  <div class="screen-board" v-loading="loading">
     <div class="screen-head">
       <h1>番析 AniScope · 动漫数据可视化大屏</h1>
       <div class="ops">
@@ -24,7 +24,7 @@ const AXIS = { color: '#9fb0d0' }
 export default {
   name: 'AnalysisScreen',
   data () {
-    return { full: false, charts: [] }
+    return { full: false, charts: [], loading: true }
   },
   mounted () {
     this.load()
@@ -36,6 +36,7 @@ export default {
   },
   methods: {
     load () {
+      this.loading = true
       analysisApi.overview().then(re => {
         const d = re.response || {}
         this.$nextTick(() => {
@@ -47,7 +48,11 @@ export default {
           this.bar('ratingChart', '评分', d.ratingDistribution || [])
           this.bar('activeChart', '评分次数', d.activeUsers || [])
         })
-      }).catch(() => {})
+        this.loading = false
+      }).catch(() => {
+        // 错误提示由响应拦截器统一弹出，这里保证失败后不会停在骨架屏
+        this.loading = false
+      })
     },
     init (ref) {
       const c = echarts.init(this.$refs[ref], null, { renderer: 'canvas' })

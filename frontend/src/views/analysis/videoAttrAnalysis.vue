@@ -1,7 +1,7 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" v-loading="loading">
     <el-alert type="success" :closable="false" show-icon style="margin-bottom:14px"
-              title="动漫属性分析：统计动漫内容属性（数据源 t_video_info，覆盖 4808 部动漫作品）。配套底层算法：LightGBM/RandomForest 等热度预测的特征取自这些动漫属性（语言、集数、热度、时长等）。"/>
+              title="动漫属性分析：统计动漫内容属性（数据源 t_video_info，覆盖全量 24905 部动漫作品，含国家/制作公司/原作来源/动画类型维度）。配套底层算法：LightGBM/RandomForest 等热度预测的特征取自这些动漫属性（语言、集数、热度、时长等）。"/>
 
     <el-row :gutter="16" class="stat-row">
       <el-col :span="4" v-for="c in statCards" :key="c.label">
@@ -13,6 +13,22 @@
     </el-row>
 
     <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-title">制作国家/地区分布</div>
+        <div ref="countryChart" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">制作公司 TOP10</div>
+        <div ref="studioChart" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">原作来源分布 TOP12</div>
+        <div ref="sourceChart" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">动画类型分布</div>
+        <div ref="typeChart" class="chart"></div>
+      </div>
       <div class="chart-box">
         <div class="chart-title">动漫类型分布（标签 TOP12）</div>
         <div ref="genreChart" class="chart"></div>
@@ -84,6 +100,21 @@ const LANG_MAP = {
   sv: '瑞典语', da: '丹麦语', ar: '阿拉伯语', nl: '荷兰语', no: '挪威语', pl: '波兰语'
 }
 
+const COUNTRY_MAP = { JP: '日本', CN: '中国', KR: '韩国' }
+
+const TYPE_MAP = {
+  TV: 'TV动画', Movie: '剧场版', OVA: 'OVA', ONA: '网络动画', Special: '特别篇', Music: '音乐'
+}
+
+const SOURCE_MAP = {
+  Original: '原创', Manga: '漫画', Novel: '小说', 'Light novel': '轻小说',
+  'Web manga': '网络漫画', Game: '游戏', 'Visual novel': '视觉小说',
+  Music: '音乐', 'Picture book': '绘本', Other: '其他'
+}
+
+const PALETTE = ['#a78bfa', '#f2a7c3', '#60a5fa', '#34d399', '#fbbf24', '#f87171',
+  '#22d3ee', '#a3e635', '#fb923c', '#c084fc', '#f472b6', '#4ade80']
+
 export default {
   name: 'VideoAttrAnalysis',
   data () {
@@ -95,8 +126,13 @@ export default {
       runtimeDist: [],
       langDist: [],
       topRevenue: [],
+      countryDist: [],
+      studioTop: [],
+      sourceDist: [],
+      typeDist: [],
       statCards: [],
-      charts: []
+      charts: [],
+      loading: true
     }
   },
   mounted () {
@@ -109,6 +145,7 @@ export default {
   },
   methods: {
     loadData () {
+      this.loading = true
       analysisApi.videoOverview().then(re => {
         const d = re.response || {}
         this.stats = d.stats || {}
@@ -118,15 +155,27 @@ export default {
         this.runtimeDist = d.runtimeDistribution || []
         this.langDist = d.languageDistribution || []
         this.topRevenue = d.topRevenue || []
+        this.countryDist = d.countryDistribution || []
+        this.studioTop = d.studioTop || []
+        this.sourceDist = d.sourceDistribution || []
+        this.typeDist = d.typeDistribution || []
         this.buildStatCards()
         this.$nextTick(() => {
+          this.renderCountry()
+          this.renderStudio()
+          this.renderSource()
+          this.renderType()
           this.renderGenre()
           this.renderYear()
           this.renderBudget()
           this.renderRuntime()
           this.renderLang()
         })
-      }).catch(() => {})
+        this.loading = false
+      }).catch(() => {
+        // 错误提示由响应拦截器统一弹出，这里保证失败后不会停在骨架屏
+        this.loading = false
+      })
     },
     buildStatCards () {
       const s = this.stats
@@ -145,6 +194,81 @@ export default {
       const chart = echarts.init(dom)
       this.charts.push(chart)
       return chart
+    },
+    renderCountry () {
+      const chart = this.initChart('countryChart')
+      if (!chart) return
+      const data = this.countryDist.map((i, idx) => ({
+        name: COUNTRY_MAP[i.name] || i.name,
+        value: i.value,
+        itemStyle: { color: PALETTE[idx % PALETTE.length] }
+      }))
+      chart.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} 部 ({d}%)' },
+        legend: { type: 'scroll', bottom: 0, textStyle: { fontSize: 11 } },
+        series: [{
+          name: '国家/地区', type: 'pie', radius: ['30%', '62%'], center: ['50%', '45%'],
+          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+          label: { fontSize: 11, formatter: '{b}\n{c}部' },
+          data
+        }]
+      })
+    },
+    renderStudio () {
+      const chart = this.initChart('studioChart')
+      if (!chart) return
+      const rows = this.studioTop.slice(0, 10)
+      const names = rows.map(i => i.name)
+      const values = rows.map(i => i.value)
+      chart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: 110, right: 40, top: 16, bottom: 36 },
+        xAxis: { type: 'value' },
+        yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 11 } },
+        series: [{
+          type: 'bar', data: values.reverse(), barWidth: '58%',
+          itemStyle: { color: '#a78bfa', borderRadius: [0, 6, 6, 0] },
+          label: { show: true, position: 'right', fontSize: 10 }
+        }]
+      })
+    },
+    renderSource () {
+      const chart = this.initChart('sourceChart')
+      if (!chart) return
+      const rows = this.sourceDist.slice(0, 12)
+      const names = rows.map(i => SOURCE_MAP[i.name] || i.name)
+      const values = rows.map(i => i.value)
+      chart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { left: 90, right: 40, top: 16, bottom: 36 },
+        xAxis: { type: 'value' },
+        yAxis: { type: 'category', data: names.reverse(), axisLabel: { fontSize: 11 } },
+        series: [{
+          type: 'bar', data: values.reverse(), barWidth: '58%',
+          itemStyle: { color: '#38bdf8', borderRadius: [0, 6, 6, 0] },
+          label: { show: true, position: 'right', fontSize: 10 }
+        }]
+      })
+    },
+    renderType () {
+      const chart = this.initChart('typeChart')
+      if (!chart) return
+      const rows = this.typeDist.slice(0, 6)
+      const data = rows.map((i, idx) => ({
+        name: TYPE_MAP[i.name] || i.name,
+        value: i.value,
+        itemStyle: { color: PALETTE[idx % PALETTE.length] }
+      }))
+      chart.setOption({
+        tooltip: { trigger: 'item', formatter: '{b}: {c} 部 ({d}%)' },
+        legend: { type: 'scroll', bottom: 0, textStyle: { fontSize: 11 } },
+        series: [{
+          name: '动画类型', type: 'pie', radius: ['30%', '62%'], center: ['50%', '45%'],
+          itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+          label: { fontSize: 11, formatter: '{b}\n{c}部' },
+          data
+        }]
+      })
     },
     renderGenre () {
       const chart = this.initChart('genreChart')

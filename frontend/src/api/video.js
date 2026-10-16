@@ -1,12 +1,12 @@
-import { post } from '@/utils/request'
+import { post, get, put, del } from '@/utils/request'
 
 export default {
   getVideoPageList: query => post('/api/admin/video/page/list', query),
-  createVideo: query => post('/api/admin/video/create', query),
-  editVideo: query => post('/api/admin/video/edit', query),
-  selectVideo: id => post('/api/admin/video/select/' + id),
-  deleteVideo: id => post('/api/admin/video/delete/' + id),
-  selectByVideoName: query => post('/api/admin/video/selectByVideoName', query),
-  getVideoDetailByVideoId: id => post('/api/admin/video/getVideoDetailByVideoId/' + id),
-  userAnalysis: id => post('/api/admin/video/userAnalysis/' + id)
+  createVideo: query => post('/api/admin/video', query),
+  editVideo: (id, query) => put('/api/admin/video/' + id, query),
+  selectVideo: id => get('/api/admin/video/' + id),
+  deleteVideo: id => del('/api/admin/video/' + id),
+  selectByVideoName: query => get('/api/admin/video/name', query),
+  getVideoDetailByVideoId: id => get('/api/admin/video/' + id + '/basic'),
+  userAnalysis: id => get('/api/admin/video/' + id + '/user-analysis')
 }

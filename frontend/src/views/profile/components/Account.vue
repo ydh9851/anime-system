@@ -29,7 +29,7 @@ export default {
   methods: {
     submit () {
       let _this = this
-      userApi.updateUser(this.userInfo).then(re => {
+      userApi.updateProfile(this.userInfo).then(re => {
         if (re.code === 1) {
           _this.$message.success(re.message)
         } else {

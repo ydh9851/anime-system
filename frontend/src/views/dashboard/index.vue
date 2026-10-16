@@ -44,8 +44,8 @@
       <div class="stat-card">
         <div class="stat-icon icon-blue"><svg-icon icon-class="exam" /></div>
         <div class="stat-meta">
-          <span class="stat-label">新增动漫</span>
-          <count-to :start-val="0" :end-val="newVideoCount" :duration="3000" class="stat-value" />
+          <span class="stat-label">动漫库总量</span>
+          <count-to :start-val="0" :end-val="videoTotal" :duration="3000" class="stat-value" />
         </div>
         <div class="stat-glow glow-blue" />
       </div>
@@ -53,7 +53,7 @@
       <div class="stat-card">
         <div class="stat-icon icon-green"><svg-icon icon-class="doexampaper" /></div>
         <div class="stat-meta">
-          <span class="stat-label">动漫播放次数</span>
+          <span class="stat-label">本月播放次数</span>
           <count-to :start-val="0" :end-val="doPlayVideoCount" :duration="3600" class="stat-value" />
         </div>
         <div class="stat-glow glow-green" />
@@ -62,8 +62,8 @@
       <div class="stat-card">
         <div class="stat-icon icon-purple"><svg-icon icon-class="star" /></div>
         <div class="stat-meta">
-          <span class="stat-label">最佳番剧</span>
-          <div class="stat-value hot-video">{{ hotVideoCount || '-' }}</div>
+          <span class="stat-label">本月最佳番剧</span>
+          <div class="stat-value hot-video" :title="hotVideoCount">{{ hotVideoCount || '-' }}</div>
         </div>
         <div class="stat-glow glow-purple" />
       </div>
@@ -84,6 +84,24 @@
           <span class="badge">MONTHLY</span>
         </header>
         <div id="echarts-moth-question" class="chart" />
+      </div>
+    </section>
+
+    <!-- Distribution charts：柱状图 + 饼图 -->
+    <section class="chart-grid" v-loading="distributionLoading">
+      <div class="glass-card chart-card fade-up">
+        <header class="card-head">
+          <h3>动漫发行年份分布</h3>
+          <span class="badge">近 20 年</span>
+        </header>
+        <div id="echarts-year-bar" class="chart" />
+      </div>
+      <div class="glass-card chart-card fade-up">
+        <header class="card-head">
+          <h3>动画类型占比</h3>
+          <span class="badge">PIE</span>
+        </header>
+        <div id="echarts-type-pie" class="chart" />
       </div>
     </section>
 
@@ -132,7 +150,7 @@ export default {
     return {
       newUserCount: 0,
       doPlayVideoCount: 0,
-      newVideoCount: 0,
+      videoTotal: 0,
       hotVideoCount: '',
       heatTopList: [],
       quickActions: [
@@ -143,30 +161,104 @@ export default {
       ],
       echartsUserAction: null,
       echartsQuestion: null,
-      loading: false
+      echartsYearBar: null,
+      echartsTypePie: null,
+      loading: false,
+      distributionLoading: false
     }
   },
   mounted () {
     this.echartsUserAction = echarts.init(document.getElementById('echarts-moth-user'), 'macarons')
     this.echartsQuestion = echarts.init(document.getElementById('echarts-moth-question'), 'macarons')
-    let _this = this
-    this.loading = true
-    dashboardApi.index().then(re => {
-      let response = re.response
-      _this.newUserCount = response.newUserCount
-      _this.doPlayVideoCount = response.doPlayVideoCount
-      _this.newVideoCount = response.newVideoCount
-      _this.hotVideoCount = response.hotVideoCount
-      const list = (response.heatTopList || []).map(item => {
-        return { ...item, starRate: Math.min(5, Math.max(0, (item.voteAverage || 0) / 2)) }
+    this.echartsYearBar = echarts.init(document.getElementById('echarts-year-bar'), 'macarons')
+    this.echartsTypePie = echarts.init(document.getElementById('echarts-type-pie'), 'macarons')
+    this.loadIndex()
+    this.loadDistribution()
+  },
+  beforeUnmount () {
+    // 必须手动 dispose，否则路由切走再回来会残留旧实例与 canvas
+    ;[this.echartsUserAction, this.echartsQuestion, this.echartsYearBar, this.echartsTypePie]
+      .forEach(chart => {
+        if (chart) {
+          chart.dispose()
+        }
       })
-      _this.heatTopList = list
-      _this.echartsUserAction.setOption(this.lineOption('用户活跃度', '活跃度', response.mothDayText, response.mothDayUserActionValue, '#f2a7c3'))
-      _this.echartsQuestion.setOption(this.lineOption('动漫月播放次数', '播放次数', response.mothDayText, response.mothDayVideoPlayValue, '#d9a7e0'))
-      this.loading = false
-    })
+    this.echartsUserAction = null
+    this.echartsQuestion = null
+    this.echartsYearBar = null
+    this.echartsTypePie = null
   },
   methods: {
+    /** 首页核心指标 + 两个折线图 */
+    loadIndex () {
+      let _this = this
+      this.loading = true
+      dashboardApi.index().then(re => {
+        let response = re.response || {}
+        _this.newUserCount = response.newUserCount || 0
+        _this.doPlayVideoCount = response.doPlayVideoCount || 0
+        _this.videoTotal = response.videoTotal || 0
+        _this.hotVideoCount = response.hotVideoCount || '-'
+        const list = (response.heatTopList || []).map(item => {
+          return { ...item, starRate: Math.min(5, Math.max(0, (item.voteAverage || 0) / 2)) }
+        })
+        _this.heatTopList = list
+        _this.renderChart(_this.echartsUserAction,
+          _this.lineOption('用户活跃度', '活跃度', response.mothDayText, response.mothDayUserActionValue, '#f2a7c3'),
+          response.mothDayUserActionValue)
+        _this.renderChart(_this.echartsQuestion,
+          _this.lineOption('动漫月播放次数', '播放次数', response.mothDayText, response.mothDayVideoPlayValue, '#d9a7e0'),
+          response.mothDayVideoPlayValue)
+      }).catch(() => {
+        // 失败提示已由响应拦截器统一弹出，这里只需复位 loading，避免骨架屏卡死
+        _this.heatTopList = []
+      }).finally(() => {
+        _this.loading = false
+      })
+    },
+    /** 分布数据：柱状图（年份分布）+ 饼图（动画类型占比） */
+    loadDistribution () {
+      let _this = this
+      this.distributionLoading = true
+      dashboardApi.distribution().then(re => {
+        const res = re.response || {}
+        // 年份分布有近 104 条（回溯到 1917 年），全画太挤，只取最近 20 年
+        const years = (res.yearDistribution || []).slice(-20)
+        const types = res.typeDistribution || []
+        _this.renderChart(_this.echartsYearBar,
+          _this.barOption(years.map(i => i.name), years.map(i => i.value)),
+          years.map(i => i.value))
+        _this.renderChart(_this.echartsTypePie,
+          _this.pieOption(types.map(i => i.name), types.map(i => i.value)),
+          types.map(i => i.value))
+      }).catch(() => {
+        _this.renderChart(_this.echartsYearBar, null, [])
+        _this.renderChart(_this.echartsTypePie, null, [])
+      }).finally(() => {
+        _this.distributionLoading = false
+      })
+    },
+    /**
+     * 统一渲染入口：数据为空时用 graphic 画「暂无数据」占位，
+     * 避免出现空坐标系让用户以为页面坏了。
+     */
+    renderChart (chart, option, data) {
+      if (!chart) return
+      const hasData = Array.isArray(data) && data.length > 0
+      if (!hasData) {
+        chart.clear()
+        chart.setOption({
+          graphic: [{
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: { text: '暂无数据', fill: '#94a3b8', fontSize: 14 } }
+          ]
+        })
+        return
+      }
+      chart.setOption(option, true)
+    },
     formatHeat (val) {
       if (val === undefined || val === null) return '-'
       return Number(val).toFixed(2)
@@ -220,6 +312,90 @@ export default {
               ]
             }
           }
+        }]
+      }
+    },
+    /** 柱状图：动漫发行年份分布 */
+    barOption (label, value) {
+      return {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          borderColor: 'rgba(255,255,255,0.08)',
+          textStyle: { color: '#fff' }
+        },
+        grid: { left: 16, right: 24, bottom: 16, top: 30, containLabel: true },
+        xAxis: {
+          type: 'category',
+          data: label,
+          axisLine: { lineStyle: { color: '#e2e8f0' } },
+          axisLabel: { color: '#94a3b8', rotate: label.length > 12 ? 45 : 0 }
+        },
+        yAxis: {
+          type: 'value',
+          name: '作品数',
+          nameTextStyle: { color: '#94a3b8' },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { lineStyle: { color: '#f1f5f9' } },
+          axisLabel: { color: '#94a3b8' }
+        },
+        series: [{
+          name: '作品数',
+          type: 'bar',
+          data: value,
+          barMaxWidth: 28,
+          itemStyle: {
+            borderRadius: [6, 6, 0, 0],
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: '#8b5cf6' },
+                { offset: 1, color: '#f2a7c3' }
+              ]
+            }
+          },
+          emphasis: { itemStyle: { color: '#6366f1' } }
+        }]
+      }
+    },
+    /** 饼图（环形）：动画类型占比 */
+    pieOption (label, value) {
+      return {
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} 部 ({d}%)',
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          borderColor: 'rgba(255,255,255,0.08)',
+          textStyle: { color: '#fff' }
+        },
+        legend: {
+          type: 'scroll',
+          bottom: 0,
+          itemWidth: 10,
+          itemHeight: 10,
+          textStyle: { color: '#64748b' }
+        },
+        color: ['#8b5cf6', '#f2a7c3', '#38bdf8', '#34d399', '#fbbf24', '#f87171', '#a78bfa'],
+        series: [{
+          name: '动画类型',
+          type: 'pie',
+          radius: ['42%', '68%'],
+          center: ['50%', '45%'],
+          avoidLabelOverlap: true,
+          label: { show: false },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 600,
+              formatter: '{b}\n{d}%'
+            }
+          },
+          labelLine: { show: true, length: 12, length2: 8 },
+          data: label.map((name, i) => ({ name, value: value[i] }))
         }]
       }
     }

@@ -292,3 +292,41 @@
     font-size: 17px;
   }
 }
+
+/* ===================================================================
+   响应式适配（小屏）
+   - <= 992px：侧栏默认收起为图标条，内容区占满宽度
+   - <= 768px：侧栏改为抽屉式（由 .hideSidebar 控制显隐），内容区不留左边距
+   =================================================================== */
+@media screen and (max-width: 992px) {
+  #app {
+
+    .main-container {
+      margin-left: 54px;
+    }
+
+    .sidebar-container {
+      width: 54px !important;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  #app {
+
+    .main-container {
+      margin-left: 0;
+    }
+
+    .sidebar-container {
+      width: $sideBarWidth !important;
+      transform: translateX(0);
+      box-shadow: 4px 0 18px rgba(0, 0, 0, .35);
+    }
+
+    // 移动端点击菜单后自动收起，避免遮挡内容
+    .hideSidebar .sidebar-container {
+      transform: translateX(-$sideBarWidth);
+    }
+  }
+}
