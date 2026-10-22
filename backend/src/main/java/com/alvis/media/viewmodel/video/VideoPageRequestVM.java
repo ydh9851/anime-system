@@ -42,4 +42,7 @@ public class VideoPageRequestVM extends BasePage {
 
     /** 排序方式：heat / vote / release / default */
     private String orderBy;
+
+    /** 只返回有封面的作品（过滤 CDN 已失效的封面） */
+    private Boolean onlyWithPoster;
 }

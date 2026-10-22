@@ -49,7 +49,17 @@
         </div>
 
         <div class="filter-row">
+          <div class="filter-dim">封面</div>
+          <div class="filter-opts">
+            <button class="opt" :class="{ active: !!queryParam.onlyWithPoster }" @click="togglePosterOnly">
+              仅显示有封面的作品
+            </button>
+            <span class="filter-note">部分作品的原图链接已失效，开启后自动跳过，避免出现破图</span>
+          </div>
+        </div>
+        <div class="filter-row">
           <div class="filter-dim">年份 / 评分</div>
+
           <div class="filter-opts year-opts">
             <el-select v-model="yearRange" multiple collapse-tags size="small" class="year-select"
                        placeholder="不限年份" @change="applyFilter">
@@ -68,8 +78,8 @@
       <div class="anime-card fade-up" v-for="(row, idx) in tableData" :key="row.videoId"
            :style="{ animationDelay: (idx % 12) * 35 + 'ms' }">
         <div class="poster-wrap">
-          <img v-if="validPoster(row.posterPath)" :src="row.posterPath" :alt="row.videoName" loading="lazy" class="poster">
-          <div v-else class="poster-placeholder"><span class="ph-char">番</span></div>
+          <img v-if="validPoster(row.posterPath) && !brokenPoster[row.videoId]" :src="row.posterPath" :alt="row.videoName" loading="lazy" class="poster" @error="markBroken(row)" />
+          <div v-else class="poster-placeholder"><span class="ph-char">{{ firstChar(row) }}</span><span class="ph-tip">暂无封面</span></div>
           <span v-if="row.premiered" class="premiered-badge">{{ row.premiered }}</span>
           <span v-if="countryName(row.country)" class="country-badge" :class="'c-' + (row.country || '')">{{ countryName(row.country) }}</span>
           <span v-if="row.originalLanguage" class="lang-badge">{{ languageName(row.originalLanguage) }}</span>
@@ -154,6 +164,7 @@ export default {
         yearTo: null,
         voteMin: null,
         orderBy: "default",
+        onlyWithPoster: false,
         pageIndex: 1,
         pageSize: 12
       },
@@ -166,6 +177,7 @@ export default {
       panelCollapsed: false,
       listLoading: true,
       tableData: [],
+      brokenPoster: {},
       total: 0,
       sortOptions: [
         { label: "综合", value: "default" },
@@ -277,6 +289,10 @@ export default {
       this.voteMin = null
       this.applyFilter()
     },
+    togglePosterOnly () {
+      this.queryParam.onlyWithPoster = !this.queryParam.onlyWithPoster
+      this.applyFilter()
+    },
     setSort (v) {
       this.queryParam.orderBy = v
       this.applyFilter()
@@ -286,6 +302,7 @@ export default {
       this.queryParam.yearFrom = ys.length ? ys[0] : null
       this.queryParam.yearTo = ys.length ? ys[ys.length - 1] : null
       this.queryParam.voteMin = this.voteMin || null
+      this.queryParam.onlyWithPoster = this.queryParam.onlyWithPoster ? true : null
       this.queryParam.pageIndex = 1
       this.search()
     },
@@ -327,6 +344,13 @@ export default {
         row.collected = re.response === 1
         this.$message.success(row.collected ? "已加入我的追番" : "已取消追番")
       }).catch(() => {})
+    },
+    markBroken (row) {
+      this.$set(this.brokenPoster, row.videoId, true)
+    },
+    firstChar (row) {
+      const n = (row.videoName || "番").trim()
+      return n ? n.charAt(0).toUpperCase() : "番"
     },
     validPoster (p) {
       return p && String(p).startsWith("http")
@@ -451,6 +475,7 @@ export default {
   }
   .opt-count { font-style: normal; font-size: 11px; color: #94a3b8; }
   .year-opts { align-items: center; }
+  .filter-note { font-size: 12px; color: #a8b3c4; align-self: center; margin-left: 6px; }
   .year-select { width: 260px; }
   .vote-select { width: 140px; }
 }
@@ -487,8 +512,17 @@ export default {
 .poster-wrap { position: relative; aspect-ratio: 3 / 4; background: linear-gradient(135deg, #f8eef4, #eef2ff); overflow: hidden; }
 .poster { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .45s cubic-bezier(.22,1,.36,1); }
 .anime-card:hover .poster { transform: scale(1.06); }
-.poster-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-.ph-char { font-size: 64px; font-weight: 800; color: #f2a7c3; }
+.poster-placeholder {
+  width: 100%; height: 100%; display: flex; flex-direction: column; gap: 6px;
+  align-items: center; justify-content: center;
+  background: linear-gradient(150deg, #f3e8ff 0%, #e0f2fe 100%);
+}
+.ph-char {
+  font-size: 56px; font-weight: 800; color: #a855f7; opacity: .55;
+  width: 84px; height: 84px; line-height: 84px; text-align: center;
+  background: rgba(255, 255, 255, .55); border-radius: 50%;
+}
+.ph-tip { font-size: 12px; color: #94a3b8; letter-spacing: 2px; }
 
 .premiered-badge {
   position: absolute; left: 10px; top: 10px; background: rgba(15, 23, 42, .72); color: #fff;

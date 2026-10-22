@@ -313,6 +313,9 @@
       <if test="voteMin != null">
         and vote_average &gt;= #{voteMin}
       </if>
+      <if test="onlyWithPoster != null and onlyWithPoster">
+        and poster_path is not null and poster_path != ''
+      </if>
     </where>
     <choose>
       <when test="orderBy == 'vote'">
