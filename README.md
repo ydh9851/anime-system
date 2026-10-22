@@ -150,20 +150,19 @@ anime-system/                          # 系统根目录（整个目录拷贝到
    - IDE：用 IDE 打开 `backend`（Maven 工程），在 Project Structure 里把 SDK / Maven JRE 设为 **JDK 17**，再运行主类 `com.alvis.media.MediaApplication`
 7. 浏览器访问 `http://localhost:8000/admin`，登录 `admin / 123456`。
 
-#### 封面失效的处理
+#### 封面数据说明
 
-数据集里的封面字段 `poster_path` 指向 MyAnimeList 官方 CDN
-（`cdn.myanimelist.net`）。官方会清理旧图片，2023 年抓取的数据里约 1% 的链接已返回 404。
+封面字段 `poster_path` 指向 MyAnimeList 官方 CDN（`cdn.myanimelist.net`）。
+官方会清理旧图片，因此抓取于 2023 年的原始数据里约 1% 的链接已失效。
 
-- 前端已做优雅降级：图片加载失败时自动切换为占位卡（作品首字 + "暂无封面"），不会出现破图
-- 筛选面板提供「仅显示有封面的作品」开关
-- 批量检测脚本（全库已清理过一次，失效 244 条）：
+**本项目已一次性清理完毕**：全库检测 24905 条封面，删除 244 条失效链接对应的作品
+（含其标签、播放记录、用户评分等关联数据），当前 24661 条作品的封面全部可正常显示。
+
+如需日后复查：
 
 ```bat
 .venv\Scripts\python.exe scripts\data_prep\check_posters.py --all
 ```
-
-检测结果写入 `data/poster_dead.txt`，按脚本提示执行 SQL 即可把失效链接置空。
 
 #### 服务启停与前端调试
 

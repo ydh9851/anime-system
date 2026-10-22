@@ -49,15 +49,6 @@
         </div>
 
         <div class="filter-row">
-          <div class="filter-dim">封面</div>
-          <div class="filter-opts">
-            <button class="opt" :class="{ active: !!queryParam.onlyWithPoster }" @click="togglePosterOnly">
-              仅显示有封面的作品
-            </button>
-            <span class="filter-note">部分作品的原图链接已失效，开启后自动跳过，避免出现破图</span>
-          </div>
-        </div>
-        <div class="filter-row">
           <div class="filter-dim">年份 / 评分</div>
 
           <div class="filter-opts year-opts">
@@ -164,7 +155,6 @@ export default {
         yearTo: null,
         voteMin: null,
         orderBy: "default",
-        onlyWithPoster: false,
         pageIndex: 1,
         pageSize: 12
       },
@@ -289,10 +279,6 @@ export default {
       this.voteMin = null
       this.applyFilter()
     },
-    togglePosterOnly () {
-      this.queryParam.onlyWithPoster = !this.queryParam.onlyWithPoster
-      this.applyFilter()
-    },
     setSort (v) {
       this.queryParam.orderBy = v
       this.applyFilter()
@@ -302,7 +288,6 @@ export default {
       this.queryParam.yearFrom = ys.length ? ys[0] : null
       this.queryParam.yearTo = ys.length ? ys[ys.length - 1] : null
       this.queryParam.voteMin = this.voteMin || null
-      this.queryParam.onlyWithPoster = this.queryParam.onlyWithPoster ? true : null
       this.queryParam.pageIndex = 1
       this.search()
     },
@@ -475,8 +460,7 @@ export default {
   }
   .opt-count { font-style: normal; font-size: 11px; color: #94a3b8; }
   .year-opts { align-items: center; }
-  .filter-note { font-size: 12px; color: #a8b3c4; align-self: center; margin-left: 6px; }
-  .year-select { width: 260px; }
+    .year-select { width: 260px; }
   .vote-select { width: 140px; }
 }
 
