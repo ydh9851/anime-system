@@ -1,5 +1,5 @@
 @echo off
-chcp 936 >nul 2>&1
+chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 set "ROOT=%CD%"
@@ -11,105 +11,105 @@ set "MODE=%~1"
 if "%MODE%"=="" set "MODE=all"
 
 echo ============================================================
-echo         ·¬Îö AniScope  ¡¤  ¶¯ÂşÊı¾İ·ÖÎöÓëÍÆ¼öÏµÍ³
-echo         Ò»¼üÆô¶¯  (Ä£Ê½: %MODE%)
+echo         ç•ªæ AniScope  Â·  åŠ¨æ¼«æ•°æ®åˆ†æä¸æ¨èç³»ç»Ÿ
+echo         ä¸€é”®å¯åŠ¨  (æ¨¡å¼: %MODE%)
 echo ============================================================
 echo.
-echo   Ê×´ÎÆô¶¯ĞèÒª±àÒë£¬Ô¼Ğè 30~90 Ãë£¬ÇëÎğ¹Ø±Õ±¾´°¿Ú¡£
+echo   é¦–æ¬¡å¯åŠ¨éœ€è¦ç¼–è¯‘ï¼Œçº¦éœ€ 30~90 ç§’ï¼Œè¯·å‹¿å…³é—­æœ¬çª—å£ã€‚
 echo.
 
 if /i "%MODE%"=="stop" goto :doStop
 if /i "%MODE%"=="status" goto :doStatus
 
-rem ================= 1. ÖĞ¼ä¼ş =================
-echo [1/7] ¼ì²é MySQL Óë Redis...
+rem ================= 1. ä¸­é—´ä»¶ =================
+echo [1/7] æ£€æŸ¥ MySQL ä¸ Redis...
 call :isPortOpen 3306
 if errorlevel 1 (
-  echo   MySQL Î´ÔËĞĞ£¬ÕıÔÚÆô¶¯·şÎñ MySQL80 ...
+  echo   MySQL æœªè¿è¡Œï¼Œæ­£åœ¨å¯åŠ¨æœåŠ¡ MySQL80 ...
   net start MySQL80 >nul 2>&1
   timeout /t 4 /nobreak >nul
   call :isPortOpen 3306
   if errorlevel 1 (
     echo.
-    echo   [Ê§°Ü] MySQL ÎŞ·¨Æô¶¯¡£ÇëÏÈÔÚ¡¸·şÎñ¡¹ÖĞÊÖ¶¯Æô¶¯ MySQL80 ºóÖØÊÔ¡£
+    echo   [å¤±è´¥] MySQL æ— æ³•å¯åŠ¨ã€‚è¯·å…ˆåœ¨ã€ŒæœåŠ¡ã€ä¸­æ‰‹åŠ¨å¯åŠ¨ MySQL80 åé‡è¯•ã€‚
     goto :failEnd
   )
 )
-echo   [OK] MySQL ÒÑ¾ÍĞ÷ 3306
+echo   [OK] MySQL å·²å°±ç»ª 3306
 
 call :isPortOpen 6379
 if errorlevel 1 (
-  echo   Redis Î´ÔËĞĞ£¬ÕıÔÚÆô¶¯·şÎñ Redis ...
+  echo   Redis æœªè¿è¡Œï¼Œæ­£åœ¨å¯åŠ¨æœåŠ¡ Redis ...
   net start Redis >nul 2>&1
   timeout /t 2 /nobreak >nul
   call :isPortOpen 6379
   if errorlevel 1 (
-    echo   [ÌáÊ¾] Redis Î´Æô¶¯£¨¿ÉÑ¡×é¼ş£¬²»Ó°ÏìÖ÷Òª¹¦ÄÜ£©
+    echo   [æç¤º] Redis æœªå¯åŠ¨ï¼ˆå¯é€‰ç»„ä»¶ï¼Œä¸å½±å“ä¸»è¦åŠŸèƒ½ï¼‰
   ) else (
-    echo   [OK] Redis ÒÑ¾ÍĞ÷ 6379
+    echo   [OK] Redis å·²å°±ç»ª 6379
   )
 )
 echo.
 
 rem ================= 2. JDK =================
-echo [2/7] ¼ì²é JDK ...
+echo [2/7] æ£€æŸ¥ JDK ...
 call :setupJava
 if errorlevel 1 (
   echo.
-  echo   [Ê§°Ü] Î´ÕÒµ½¿ÉÓÃµÄ JDK 17£¬Çë°²×° JDK 17 »òÉèÖÃ JAVA_HOME¡£
+  echo   [å¤±è´¥] æœªæ‰¾åˆ°å¯ç”¨çš„ JDK 17ï¼Œè¯·å®‰è£… JDK 17 æˆ–è®¾ç½® JAVA_HOMEã€‚
   goto :failEnd
 )
 echo.
 
 rem ================= 3. Maven =================
-echo [3/7] ¼ì²é Maven ...
+echo [3/7] æ£€æŸ¥ Maven ...
 call :setupMaven
 if errorlevel 1 (
   echo.
-  echo   [Ê§°Ü] Î´ÕÒµ½ Maven£¬Çë°²×° Maven »ò¼ÓÈë PATH¡£
+  echo   [å¤±è´¥] æœªæ‰¾åˆ° Mavenï¼Œè¯·å®‰è£… Maven æˆ–åŠ å…¥ PATHã€‚
   goto :failEnd
 )
 echo.
 
-rem ================= 4. Êı¾İ¿â =================
-echo [4/7] ¼ì²éÊı¾İ¿â ...
+rem ================= 4. æ•°æ®åº“ =================
+echo [4/7] æ£€æŸ¥æ•°æ®åº“ ...
 call :setupMysql
 call :checkDb
 echo.
 
-rem ================= 5. Ç°¶Ë²úÎï =================
-echo [5/7] ¼ì²éÇ°¶ËÒ³Ãæ×ÊÔ´ ...
+rem ================= 5. å‰ç«¯äº§ç‰© =================
+echo [5/7] æ£€æŸ¥å‰ç«¯é¡µé¢èµ„æº ...
 if not exist "%ADMIN_STATIC%\index.html" (
-  echo   Î´ÕÒµ½Ç°¶Ë¹¹½¨²úÎï£¬ÕıÔÚ×Ô¶¯¹¹½¨£¨ĞèÒª¼¸·ÖÖÓ£©...
+  echo   æœªæ‰¾åˆ°å‰ç«¯æ„å»ºäº§ç‰©ï¼Œæ­£åœ¨è‡ªåŠ¨æ„å»ºï¼ˆéœ€è¦å‡ åˆ†é’Ÿï¼‰...
   call :buildFrontend
   if errorlevel 1 (
     echo.
-    echo   [Ê§°Ü] Ç°¶Ë¹¹½¨Ê§°Ü£¬Çëµ½ frontend Ä¿Â¼ÊÖ¶¯Ö´ĞĞ npm install Óë npm run build¡£
+    echo   [å¤±è´¥] å‰ç«¯æ„å»ºå¤±è´¥ï¼Œè¯·åˆ° frontend ç›®å½•æ‰‹åŠ¨æ‰§è¡Œ npm install ä¸ npm run buildã€‚
     goto :failEnd
   )
 )
-echo   [OK] Ç°¶ËÒ³Ãæ×ÊÔ´¾ÍĞ÷
+echo   [OK] å‰ç«¯é¡µé¢èµ„æºå°±ç»ª
 echo.
 
-rem ================= 6. ÇåÀí¾É½ø³Ì =================
-echo [6/7] ÇåÀí 8000 ¶Ë¿ÚÉÏµÄ¾É½ø³Ì...
+rem ================= 6. æ¸…ç†æ—§è¿›ç¨‹ =================
+echo [6/7] æ¸…ç† 8000 ç«¯å£ä¸Šçš„æ—§è¿›ç¨‹...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do (
-  echo   ÕıÔÚÍ£Ö¹ PID %%p
+  echo   æ­£åœ¨åœæ­¢ PID %%p
   taskkill /PID %%p /F >nul 2>&1
 )
 timeout /t 2 /nobreak >nul
 echo.
 
-rem ================= 7. Æô¶¯ºó¶Ë =================
-echo [7/7] Æô¶¯ºó¶Ë·şÎñ...
+rem ================= 7. å¯åŠ¨åç«¯ =================
+echo [7/7] å¯åŠ¨åç«¯æœåŠ¡...
 if exist "%ROOT%\_boot.log" del "%ROOT%\_boot.log"
-echo   ÕıÔÚÁí¿ªÒ»¸ö´°¿ÚÔËĞĞ Spring Boot£¬ÈÕÖ¾Ğ´Èë _boot.log
-echo   £¨Ê×´Î±àÒë½ÏÂı£¬ÇëÄÍĞÄµÈ´ı£¬´°¿Ú¿É×îĞ¡»¯µ«²»Òª¹Ø±Õ£©
+echo   æ­£åœ¨å¦å¼€ä¸€ä¸ªçª—å£è¿è¡Œ Spring Bootï¼Œæ—¥å¿—å†™å…¥ _boot.log
+echo   ï¼ˆé¦–æ¬¡ç¼–è¯‘è¾ƒæ…¢ï¼Œè¯·è€å¿ƒç­‰å¾…ï¼Œçª—å£å¯æœ€å°åŒ–ä½†ä¸è¦å…³é—­ï¼‰
 echo.
-rem ×¢Òâ£ºset ³öÀ´µÄ±äÁ¿²»»á´«¸øĞÂ½ø³Ì£¬JAVA_HOME ±ØĞëÔÚÕâÀïÔÙÉèÒ»´Î
-start "AnimeSystem ºó¶Ë·şÎñ£¨ÇëÎğ¹Ø±Õ£©" cmd /k "set JAVA_HOME=%JAVA_HOME%&& set PATH=%JAVA_HOME%\bin;%PATH%&& cd /d %BACKEND%&& mvn -q -Dmaven.test.skip=true compile spring-boot:run 1> %ROOT%\_boot.log 2>&1"
+rem æ³¨æ„ï¼šset å‡ºæ¥çš„å˜é‡ä¸ä¼šä¼ ç»™æ–°è¿›ç¨‹ï¼ŒJAVA_HOME å¿…é¡»åœ¨è¿™é‡Œå†è®¾ä¸€æ¬¡
+start "AnimeSystem åç«¯æœåŠ¡ï¼ˆè¯·å‹¿å…³é—­ï¼‰" cmd /k "set JAVA_HOME=%JAVA_HOME%&& set PATH=%JAVA_HOME%\bin;%PATH%&& cd /d %BACKEND%&& mvn -q -Dmaven.test.skip=true compile spring-boot:run 1> %ROOT%\_boot.log 2>&1"
 
-echo   ÕıÔÚµÈ´ıºó¶Ë¾ÍĞ÷£¨×î³¤ 180 Ãë£©...
+echo   æ­£åœ¨ç­‰å¾…åç«¯å°±ç»ªï¼ˆæœ€é•¿ 180 ç§’ï¼‰...
 set "READY=0"
 for /L %%i in (1,1,60) do (
   timeout /t 3 /nobreak >nul
@@ -121,89 +121,89 @@ for /L %%i in (1,1,60) do (
 )
 
 echo.
-echo   [Ê§°Ü] µÈ´ı³¬Ê±£¬ºó¶ËÎ´ÄÜÆô¶¯¡£ÈÕÖ¾Ä©Î² 30 ĞĞÈçÏÂ£º
+echo   [å¤±è´¥] ç­‰å¾…è¶…æ—¶ï¼Œåç«¯æœªèƒ½å¯åŠ¨ã€‚æ—¥å¿—æœ«å°¾ 30 è¡Œå¦‚ä¸‹ï¼š
 echo ------------------------------------------------------------
 if exist "%ROOT%\_boot.log" (
   powershell -NoProfile -Command "Get-Content '%ROOT%\_boot.log' -Tail 30"
 ) else (
-  echo   Ã»ÓĞÉú³ÉÈÕÖ¾ÎÄ¼ş£¬ºó¶Ë´°¿Ú¿ÉÄÜ±»¹Ø±ÕÁË¡£
+  echo   æ²¡æœ‰ç”Ÿæˆæ—¥å¿—æ–‡ä»¶ï¼Œåç«¯çª—å£å¯èƒ½è¢«å…³é—­äº†ã€‚
 )
 echo ------------------------------------------------------------
-echo   ³£¼ûÔ­Òò£º
-echo     1) 8000 ¶Ë¿Ú±»ÆäËû³ÌĞòÕ¼ÓÃ
-echo     2) MySQL Î´Æô¶¯»òÊı¾İ¿âÎ´³õÊ¼»¯
-echo     3) ºó¶Ë´°¿ÚÀï³öÏÖÁË±¨´í£¬Çë°ÑÄÇ¸ö´°¿ÚµÄÄÚÈİ·¢¸øÎÒ
+echo   å¸¸è§åŸå› ï¼š
+echo     1) 8000 ç«¯å£è¢«å…¶ä»–ç¨‹åºå ç”¨
+echo     2) MySQL æœªå¯åŠ¨æˆ–æ•°æ®åº“æœªåˆå§‹åŒ–
+echo     3) åç«¯çª—å£é‡Œå‡ºç°äº†æŠ¥é”™ï¼Œè¯·æŠŠé‚£ä¸ªçª—å£çš„å†…å®¹å‘ç»™æˆ‘
 goto :failEnd
 
 :ready
 echo.
-echo   [OK] ºó¶ËÒÑ¾ÍĞ÷£¬ÕıÔÚ×öÒ³Ãæ¼ì²é...
+echo   [OK] åç«¯å·²å°±ç»ªï¼Œæ­£åœ¨åšé¡µé¢æ£€æŸ¥...
 timeout /t 2 /nobreak >nul
 echo.
 
 if /i "%MODE%"=="dev" goto :startFrontend
 
 echo ============================================================
-echo   Æô¶¯³É¹¦
+echo   å¯åŠ¨æˆåŠŸ
 echo.
-echo     ºóÌ¨¹ÜÀíÒ³Ãæ : http://localhost:8000/admin
-echo     µÇÂ¼ÕËºÅ     : admin / 123456
-echo     ºó¶ËÈÕÖ¾     : %ROOT%\_boot.log
+echo     åå°ç®¡ç†é¡µé¢ : http://localhost:8000/admin
+echo     ç™»å½•è´¦å·     : admin / 123456
+echo     åç«¯æ—¥å¿—     : %ROOT%\_boot.log
 echo.
-echo   ÕıÔÚ´ò¿ªä¯ÀÀÆ÷...
+echo   æ­£åœ¨æ‰“å¼€æµè§ˆå™¨...
 echo ============================================================
 start "" "http://localhost:8000/admin"
 echo.
-echo   ÌáÊ¾£ººó¶ËÔÚÁíÒ»¸ö´°¿ÚÔËĞĞ£¬ĞèÒªÍ£Ö¹Ê±Ö´ĞĞ start_all.cmd stop
+echo   æç¤ºï¼šåç«¯åœ¨å¦ä¸€ä¸ªçª—å£è¿è¡Œï¼Œéœ€è¦åœæ­¢æ—¶æ‰§è¡Œ start_all.cmd stop
 echo.
 pause
 exit /b 0
 
 :startFrontend
-echo [¸½¼Ó] Æô¶¯Ç°¶Ë¿ª·¢·şÎñÆ÷£¨Vite£¬¶Ë¿Ú 8002£©...
+echo [é™„åŠ ] å¯åŠ¨å‰ç«¯å¼€å‘æœåŠ¡å™¨ï¼ˆViteï¼Œç«¯å£ 8002ï¼‰...
 if not exist "%FRONTEND%\node_modules" (
-  echo   Ê×´ÎÔËĞĞ£¬ÕıÔÚ°²×°Ç°¶ËÒÀÀµ£¨ĞèÒª¼¸·ÖÖÓ£©...
+  echo   é¦–æ¬¡è¿è¡Œï¼Œæ­£åœ¨å®‰è£…å‰ç«¯ä¾èµ–ï¼ˆéœ€è¦å‡ åˆ†é’Ÿï¼‰...
   pushd "%FRONTEND%"
   call npm install
   popd
 )
-start "AnimeSystem Ç°¶Ë dev£¨Vite 8002£©" cmd /k "cd /d %FRONTEND%&& npm run dev"
-echo   Ç°¶Ë¿ª·¢µØÖ·: http://localhost:8002
-echo   £¨Éú²úÄ£Ê½Çë·ÃÎÊ http://localhost:8000/admin£©
+start "AnimeSystem å‰ç«¯ devï¼ˆVite 8002ï¼‰" cmd /k "cd /d %FRONTEND%&& npm run dev"
+echo   å‰ç«¯å¼€å‘åœ°å€: http://localhost:8002
+echo   ï¼ˆç”Ÿäº§æ¨¡å¼è¯·è®¿é—® http://localhost:8000/adminï¼‰
 echo.
 
 echo ============================================================
-echo   Æô¶¯³É¹¦
-echo     Éú²úÄ£Ê½ : http://localhost:8000/admin
-echo     ¿ª·¢Ä£Ê½ : http://localhost:8002
-echo     µÇÂ¼ÕËºÅ : admin / 123456
+echo   å¯åŠ¨æˆåŠŸ
+echo     ç”Ÿäº§æ¨¡å¼ : http://localhost:8000/admin
+echo     å¼€å‘æ¨¡å¼ : http://localhost:8002
+echo     ç™»å½•è´¦å· : admin / 123456
 echo ============================================================
 start "" "http://localhost:8000/admin"
 echo.
 pause
 exit /b 0
 
-rem ================= Í£Ö¹ =================
+rem ================= åœæ­¢ =================
 :doStop
-echo ÕıÔÚÍ£Ö¹±¾ÏîÄ¿Ïà¹Ø½ø³Ì...
+echo æ­£åœ¨åœæ­¢æœ¬é¡¹ç›®ç›¸å…³è¿›ç¨‹...
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do (
-  echo   Í£Ö¹ºó¶Ë PID %%p
+  echo   åœæ­¢åç«¯ PID %%p
   taskkill /PID %%p /F >nul 2>&1
 )
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr :8002 ^| findstr LISTENING') do (
-  echo   Í£Ö¹Ç°¶Ë PID %%p
+  echo   åœæ­¢å‰ç«¯ PID %%p
   taskkill /PID %%p /F >nul 2>&1
 )
-echo [OK] ÒÑÍ£Ö¹
+echo [OK] å·²åœæ­¢
 pause
 exit /b 0
 
-rem ================= ×´Ì¬²éÑ¯ =================
+rem ================= çŠ¶æ€æŸ¥è¯¢ =================
 :doStatus
-echo [¶Ë¿ÚÕ¼ÓÃÇé¿ö]
+echo [ç«¯å£å ç”¨æƒ…å†µ]
 netstat -ano | findstr ":8000 :8002 :3306 :6379" | findstr LISTENING
 echo.
-echo [Êı¾İ±íĞĞÊı]
+echo [æ•°æ®è¡¨è¡Œæ•°]
 call :showCount t_user
 call :showCount t_video_info
 call :showCount t_video_play
@@ -212,12 +212,12 @@ call :showCount t_train_task
 pause
 exit /b 0
 
-rem ================= ×Ó¹ı³Ì =================
+rem ================= å­è¿‡ç¨‹ =================
 :isPortOpen
 netstat -ano | findstr ":%~1" | findstr LISTENING >nul
 exit /b %errorlevel%
 
-rem JDK 17£ºÓÅÏÈÓÃ C:\developtools\jdk17£¬Æä´ÎÏµÍ³ JAVA_HOME£¬×îºó PATH
+rem JDK 17ï¼šä¼˜å…ˆç”¨ C:\developtools\jdk17ï¼Œå…¶æ¬¡ç³»ç»Ÿ JAVA_HOMEï¼Œæœ€å PATH
 :setupJava
 set "JAVA_HOME="
 if exist "C:\developtools\jdk17\bin\java.exe" (
@@ -230,16 +230,16 @@ if not "!JAVA_HOME!"=="" (
 )
 where java >nul 2>&1
 if errorlevel 1 (
-  echo   [FAIL] Î´ÕÒµ½ JDK
+  echo   [FAIL] æœªæ‰¾åˆ° JDK
   exit /b 1
 )
-echo   [WARN] PATH ÖĞÓĞ java£¬µ«Î´ÄÜ¶¨Î» JDK 17£¬ºó¶Ë½«Ê¹ÓÃÏµÍ³ JAVA_HOME
+echo   [WARN] PATH ä¸­æœ‰ javaï¼Œä½†æœªèƒ½å®šä½ JDK 17ï¼Œåç«¯å°†ä½¿ç”¨ç³»ç»Ÿ JAVA_HOME
 exit /b 0
 
 :setupMaven
 where mvn >nul 2>&1
 if not errorlevel 1 (
-  echo   [OK] Maven ¿ÉÓÃ
+  echo   [OK] Maven å¯ç”¨
   exit /b 0
 )
 if exist "C:\developtools\apache-maven-3.9.9\bin\mvn.cmd" (
@@ -247,7 +247,7 @@ if exist "C:\developtools\apache-maven-3.9.9\bin\mvn.cmd" (
   echo   [OK] Maven : C:\developtools\apache-maven-3.9.9
   exit /b 0
 )
-echo   [FAIL] Î´ÕÒµ½ Maven
+echo   [FAIL] æœªæ‰¾åˆ° Maven
 exit /b 1
 
 :setupMysql
@@ -261,16 +261,16 @@ exit /b 0
 
 :checkDb
 if not exist "%ROOT%\.venv\Scripts\python.exe" (
-  echo   [ÌáÊ¾] Î´ÕÒµ½ Python ĞéÄâ»·¾³£¬Ë«»÷ setup_venv.cmd ¿ÉÖØ½¨
+  echo   [æç¤º] æœªæ‰¾åˆ° Python è™šæ‹Ÿç¯å¢ƒï¼ŒåŒå‡» setup_venv.cmd å¯é‡å»º
 )
 mysql -uroot -p123456 -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='anime_mangage_db' AND table_name='t_user';" 2>nul | findstr 1 >nul
 if errorlevel 1 (
-  echo   [ÌáÊ¾] Êı¾İ¿â anime_mangage_db ÉĞÎ´³õÊ¼»¯£¬ÇëÖ´ĞĞ£º
+  echo   [æç¤º] æ•°æ®åº“ anime_mangage_db å°šæœªåˆå§‹åŒ–ï¼Œè¯·æ‰§è¡Œï¼š
   echo          mysql -uroot -p123456 ^< sql\anime_mangage_db.sql
   echo          mysql -uroot -p123456 ^< sql\dataset_model_schema.sql
   exit /b 0
 )
-echo   [OK] Êı¾İ¿â anime_mangage_db ÒÑ¾ÍĞ÷
+echo   [OK] æ•°æ®åº“ anime_mangage_db å·²å°±ç»ª
 exit /b 0
 
 :buildFrontend
@@ -294,12 +294,12 @@ exit /b %RC%
 :showCount
 set "TBL=%~1"
 for /f "tokens=*" %%c in ('mysql -uroot -p123456 -N anime_mangage_db -e "SELECT COUNT(*) FROM %TBL%;" 2^>nul') do (
-  echo    %TBL% = %%c ĞĞ
+  echo    %TBL% = %%c è¡Œ
 )
 exit /b 0
 
 :failEnd
 echo.
-echo °´ÈÎÒâ¼ü¹Ø±Õ±¾´°¿Ú...
+echo æŒ‰ä»»æ„é”®å…³é—­æœ¬çª—å£...
 pause >nul
 exit /b 1
