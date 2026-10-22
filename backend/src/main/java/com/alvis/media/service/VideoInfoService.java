@@ -41,6 +41,15 @@ public interface VideoInfoService extends BaseService<VideoInfo> {
 
     List <VideoInfo> userAnalysis(Integer recommendUserId);
 
+    /**
+     * 相关番剧推荐：基于题材重合度、年代接近度与热度排序
+     *
+     * @param videoId 当前动漫 ID
+     * @param limit  返回条数，为空时默认 6 条
+     * @return 与当前动漫内容相近的作品列表
+     */
+    List<VideoInfo> relatedVideos(Integer videoId, Integer limit);
+
     int insertVideoPlay(String realUrl,Integer userId);
 
     int recalculateHeat();

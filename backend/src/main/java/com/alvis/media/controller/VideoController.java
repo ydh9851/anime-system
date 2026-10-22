@@ -175,6 +175,15 @@ public class VideoController extends BaseApiController {
         return RestResponse.ok(vm);
     }
 
+    /**
+     * 相关番剧推荐：按题材重合度 + 年代接近 + 热度排序，limit 默认 6 条。
+     */
+    @GetMapping(value = "/{id}/related")
+    public RestResponse<List<VideoInfo>> relatedVideos(@PathVariable Integer id,
+                                                @RequestParam(required = false) Integer limit) {
+        return RestResponse.ok(videoInfoService.relatedVideos(id, limit));
+    }
+
     @GetMapping(value = "/{id}/user-analysis")
     public RestResponse<UserAnalysisVM> userAnalysis(@PathVariable Integer id) {
         UserAnalysisVM vm = new UserAnalysisVM();

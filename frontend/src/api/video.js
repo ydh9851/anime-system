@@ -10,5 +10,7 @@ export default {
   deleteVideo: id => del('/api/admin/video/' + id),
   selectByVideoName: query => get('/api/admin/video/name', query),
   getVideoDetailByVideoId: id => get('/api/admin/video/' + id + '/basic'),
+  /** 相关番剧推荐（题材重合度 + 年代接近 + 热度排序） */
+  relatedVideos: (id, limit = 6) => get('/api/admin/video/' + id + '/related?limit=' + limit),
   userAnalysis: id => get('/api/admin/video/' + id + '/user-analysis')
 }

@@ -91,4 +91,13 @@ public interface VideoInfoMapper extends MediaBaseMapper <VideoInfo> {
 
     /** 按当前筛选条件统计命中数量（不含关键字，用于筛选面板实时计数） */
     int countByFilter(VideoPageRequestVM requestVM);
+
+    /**
+     * 相关番剧推荐：按题材重合度 + 年代接近 + 热度排序
+     *
+     * @param videoId 当前动漫 ID
+     * @param limit  返回条数
+     * @return 与当前动漫题材相近的作品
+     */
+    List<VideoInfo> selectRelatedVideos(@Param("videoId") Integer videoId, @Param("limit") Integer limit);
 }

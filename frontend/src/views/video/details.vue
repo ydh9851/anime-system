@@ -156,8 +156,8 @@ export default {
       this.loading = true
       videoApi.selectVideo(id).then(re => {
         this.form = re.response || {}
-        return videoApi.userAnalysis(id).then(r2 => {
-          this.related = (r2.response && r2.response.videoRecommendList) || []
+        return videoApi.relatedVideos(id, 6).then(r2 => {
+          this.related = (r2.response && r2.response) || []
         }).catch(() => { this.related = [] })
       }).catch(() => { this.form = {} })
         .finally(() => { this.loading = false })

@@ -545,4 +545,18 @@
     </where>
   </select>
 
+  <!-- 相关番剧推荐：题材重合度为主，类型一致为门槛，年代接近与热度做排序加权 -->
+  <select id="selectRelatedVideos" resultMap="BaseResultMap">
+    SELECT v.video_id, v.video_name, v.video_category, v.create_time, v.creator_id, v.last_modify_time, v.video_url, v.original_title, v.overview, v.tagline, v.budget, v.revenue, v.popularity, v.vote_average, v.vote_count, v.runtime, v.release_date, v.original_language, v.poster_path, v.heat_score, v.studios, v.country, v.source, v.premiered, v.video_type
+    FROM t_video_info v
+    WHERE v.video_id != #{videoId,jdbcType=INTEGER}
+      AND v.poster_path IS NOT NULL AND v.poster_path != ''
+      AND EXISTS (SELECT 1 FROM t_video_tag vt JOIN t_tag tg ON vt.tag_id = tg.tag_id
+                  WHERE vt.video_id = v.video_id AND tg.tag_name IN (SELECT tg2.tag_name FROM t_video_tag vt2 JOIN t_tag tg2 ON vt2.tag_id = tg2.tag_id WHERE vt2.video_id = #{videoId,jdbcType=INTEGER}))
+    ORDER BY (SELECT COUNT(*) FROM t_video_tag vt JOIN t_tag tg ON vt.tag_id = tg.tag_id WHERE vt.video_id = v.video_id AND tg.tag_name IN (SELECT tg2.tag_name FROM t_video_tag vt2 JOIN t_tag tg2 ON vt2.tag_id = tg2.tag_id WHERE vt2.video_id = #{videoId,jdbcType=INTEGER})) DESC,
+             ABS(YEAR(v.release_date) - YEAR((SELECT release_date FROM t_video_info WHERE video_id = #{videoId,jdbcType=INTEGER}))) ASC,
+             v.heat_score DESC
+    LIMIT #{limit,jdbcType=INTEGER}
+  </select>
+
 </mapper>

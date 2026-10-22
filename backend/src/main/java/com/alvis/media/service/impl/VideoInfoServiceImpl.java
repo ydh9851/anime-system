@@ -161,6 +161,13 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
     }
 
     @Override
+    public List <VideoInfo> relatedVideos(Integer videoId, Integer limit) {
+        List<VideoInfo> list = videoInfoMapper.selectRelatedVideos(videoId,
+                limit == null || limit <= 0 ? 6 : Math.min(limit, 24));
+        return list == null ? new ArrayList<>() : list;
+    }
+
+    @Override
     public List <VideoInfo> userAnalysis(Integer recommendUserId) {
 
         List <VideoInfo> result = new ArrayList <>();
