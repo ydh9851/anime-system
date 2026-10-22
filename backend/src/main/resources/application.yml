@@ -26,8 +26,10 @@ mybatis-plus:
   configuration:
     cache-enabled: false
     map-underscore-to-camel-case: true
-    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 关闭 MyBatis 的 SQL 打印。打开后每条 SQL 都会输出到标准输出，
+    # 启动时重算全库热度会产生上万行日志，窗口刷屏且拖慢启动。
+    # 排查问题时临时改成 org.apache.ibatis.logging.stdout.StdOutImpl 即可。
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     banner: false
     db-config:
@@ -35,6 +37,13 @@ mybatis-plus:
       logic-not-delete-value: 0
       table-underline: true
       column-like: true
+
+# 启动时是否自动重算全库热度（heat_score）。
+# true  = 启动时重算 24905 条，首页热度榜始终可用，首次启动约多花 3~8 秒
+# false = 跳过重算，启动更快；需要时可调用 POST /api/admin/dashboard/recalculate-heat
+anime:
+  heat:
+    init-on-startup: true
 
 
 system:
