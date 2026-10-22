@@ -35,7 +35,7 @@ export default {
         } else {
           _this.$message.error(re.message)
         }
-      })
+      }).catch(() => {})
     }
   }
 }

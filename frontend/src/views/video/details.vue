@@ -167,6 +167,8 @@ export default {
       collectionApi.toggle(this.form.videoId).then(re => {
         this.collected = re.response === 1
         this.$message.success(this.collected ? '已加入我的追番' : '已取消追番')
+      }).catch(() => {
+        loading = false
       })
     },
     fmtMoney (v) {

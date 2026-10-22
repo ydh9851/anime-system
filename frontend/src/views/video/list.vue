@@ -97,6 +97,8 @@ export default {
         this.total = re.total
         this.queryParam.pageIndex = re.pageNum
         this.listLoading = false
+      }).catch(() => {
+        listLoading = false
       })
     },
     editVideo (row) {
@@ -116,14 +118,16 @@ export default {
           } else {
             this.$message.error(re.message)
           }
-        })
+        }).catch(() => {
+        listLoading = false
+      })
       }).catch(() => {})
     },
     collect (row) {
       collectionApi.toggle(row.videoId).then(re => {
         row.collected = re.response === 1
         this.$message.success(row.collected ? '已加入我的追番' : '已取消追番')
-      })
+      }).catch(() => {})
     },
     submitForm () {
       this.queryParam.pageIndex = 1

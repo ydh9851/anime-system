@@ -85,6 +85,8 @@ export default {
       userApi.selectUser(id).then(re => {
         _this.form = re.response
         _this.formLoading = false
+      }).catch(() => {
+        formLoading = false
       })
     }
   },
@@ -104,7 +106,9 @@ export default {
               _this.$message.success(data.message)
               _this.delCurrentView(_this).then(() => {
                 _this.$router.push('/user/admin/list')
-              })
+              }).catch(() => {
+        formLoading = false
+      })
             } else {
               _this.$message.error(data.message)
               _this.formLoading = false

@@ -81,6 +81,8 @@ export default {
         this.total = re.total
         this.queryParam.pageIndex = re.pageNum
         this.listLoading = false
+      }).catch(() => {
+        listLoading = false
       })
     },
     changeStatus (row) {
@@ -92,6 +94,8 @@ export default {
         } else {
           _this.$message.error(re.message)
         }
+      }).catch(() => {
+        listLoading = false
       })
     },
     deleteUser (row) {
@@ -103,6 +107,8 @@ export default {
         } else {
           _this.$message.error(re.message)
         }
+      }).catch(() => {
+        listLoading = false
       })
     },
     submitForm () {

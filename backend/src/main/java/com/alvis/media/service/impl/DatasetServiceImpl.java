@@ -1,6 +1,8 @@
 package com.alvis.media.service.impl;
 
+import com.alvis.media.base.SystemCode;
 import com.alvis.media.domain.Dataset;
+import com.alvis.media.exception.BusinessException;
 import com.alvis.media.repository.DatasetMapper;
 import com.alvis.media.repository.UserMapper;
 import com.alvis.media.service.DatasetService;
@@ -125,6 +127,12 @@ public class DatasetServiceImpl implements DatasetService {
         }
         if (remark != null) {
             patch.setRemark(remark.trim());
+        }
+        // 名称与备注都没传时，MyBatis 的动态 SQL 不会生成 SET 子句，
+        // 直接执行会得到 "update t_dataset where dataset_id = ?" 的非法语句，
+        // 这里提前拦截并给出可读提示。
+        if (StringUtils.isBlank(name) && remark == null) {
+            throw new BusinessException(SystemCode.ParameterValidError.getCode(), "名称与备注至少需要提供一项");
         }
         datasetMapper.updateByPrimaryKeySelective(patch);
         return detail(datasetId);

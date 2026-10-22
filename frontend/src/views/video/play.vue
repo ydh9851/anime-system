@@ -43,6 +43,8 @@ export default {
       videoApi.selectVideo(id).then(re => {
         _this.form = re.response
         _this.formLoading = false
+      }).catch(() => {
+        formLoading = false
       })
     }
   }

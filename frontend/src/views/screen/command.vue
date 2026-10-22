@@ -199,9 +199,9 @@ export default {
     },
     load () {
       Promise.all([
-        dashboardApi.index().then(r => r.response || {}),
-        dashboardApi.distribution().then(r => r.response || {}),
-        analysisApi.overview().then(r => r.response || {})
+        dashboardApi.index().then(r => r.response || {}).catch(() => {}),
+        dashboardApi.distribution().then(r => r.response || {}).catch(() => {}),
+        analysisApi.overview().then(r => r.response || {}).catch(() => {})
       ]).then(([idx, dist, ana]) => {
         this.online = true
         this.render(idx, dist, ana)

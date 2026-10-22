@@ -51,7 +51,7 @@ export default {
     let _this = this
     userApi.getCurrentUser().then(re => {
       _this.userInfo = re.response
-    })
+    }).catch(() => {})
   }
 }
 </script>

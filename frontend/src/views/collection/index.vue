@@ -43,7 +43,7 @@ export default {
       return p && String(p).startsWith('http') ? p : ''
     },
     remove (item) {
-      collectionApi.toggle(item.videoId).then(() => this.load())
+      collectionApi.toggle(item.videoId).then(() => this.load()).catch(() => {})
     }
   }
 }
