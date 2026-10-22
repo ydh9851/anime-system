@@ -235,6 +235,24 @@ const constantRoutes = [
   },
 
   {
+    path: '/screen',
+    component: Layout,
+    name: 'CommandScreenPage',
+    meta: {
+      title: '态势感知大屏',
+      icon: 'fullscreen'
+    },
+    alwaysShow: true,
+    children: [
+      {
+        path: 'command',
+        component: () => import('@/views/screen/command'),
+        name: 'CommandScreen',
+        meta: { title: '可视化感知大屏', noCache: true }
+      }
+    ]
+  },
+  {
     path: '/model',
     component: Layout,
     name: 'ModelPage',

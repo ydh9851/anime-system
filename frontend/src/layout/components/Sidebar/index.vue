@@ -55,6 +55,7 @@ import variables from '@/styles/variables.js'
  */
 const GROUP_CONFIG = [
   { keys: ['/'], title: '', icon: '' },
+  { keys: ['/screen'], title: '可视化大屏', icon: 'fullscreen' },
   { keys: ['/video', '/model'], title: '数据与模型', icon: 'component' },
   { keys: ['/user', '/collection'], title: '用户与运营', icon: 'user' },
   { keys: ['/analysis'], title: '数据分析', icon: 'chart' },

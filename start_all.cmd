@@ -92,9 +92,14 @@ echo   [OK] 前端页面资源就绪
 echo.
 
 rem ================= 6. 清理旧进程 =================
-echo [6/7] 清理 8000 端口上的旧进程...
+echo [6/7] 清理本项目的旧进程...
+rem 只杀本项目后端相关的 java 进程，避免与其它程序冲突。
+rem 特别注意：如果上一次的后端进程还活着却没占住 8000 端口，
+rem 它的 mvn 仍在编译并写 target/classes，此时再启动一个 mvn 会并发写同一批 class 文件，
+rem 导致产物损坏（ClassFormatError: Invalid method Code length 0），必须先清干净。
+powershell -NoProfile -Command "Get-CimInstance Win32_Process ^| Where-Object { $_.Name -eq 'java.exe' -and $_.CommandLine -like '*anime-system*backend*' } ^| ForEach-Object { Write-Host ('   停止残留后端 PID ' + $_.ProcessId); Stop-Process -Id $_.ProcessId -Force }"
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do (
-  echo   正在停止 PID %%p
+  echo   停止占用 8000 的 PID %%p
   taskkill /PID %%p /F >nul 2>&1
 )
 timeout /t 2 /nobreak >nul
