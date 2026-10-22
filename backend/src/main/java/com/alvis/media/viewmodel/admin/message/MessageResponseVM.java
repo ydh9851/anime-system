@@ -2,7 +2,6 @@ package com.alvis.media.viewmodel.admin.message;
 
 import lombok.Data;
 
-import java.util.Date;
 
 @Data
 public class MessageResponseVM {

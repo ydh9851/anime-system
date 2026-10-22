@@ -2,7 +2,6 @@ package com.alvis.media.viewmodel.student.user;
 
 import lombok.Data;
 
-import java.util.Date;
 
 @Data
 public class UserEventLogVM {

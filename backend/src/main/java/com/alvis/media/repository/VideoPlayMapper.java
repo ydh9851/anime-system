@@ -1,6 +1,5 @@
 package com.alvis.media.repository;
 
-import com.alvis.media.domain.VideoInfo;
 import com.alvis.media.domain.VideoPlay;
 import com.alvis.media.domain.other.KeyValue;
 import org.apache.ibatis.annotations.Mapper;

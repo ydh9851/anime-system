@@ -2,7 +2,6 @@ package com.alvis.media.service;
 
 
 import java.io.InputStream;
-import java.util.Set;
 
 public interface FileUpload {
 

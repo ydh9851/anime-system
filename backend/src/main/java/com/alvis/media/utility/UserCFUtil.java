@@ -30,7 +30,6 @@ public final  class UserCFUtil {
          * D  c d e
          */
        // Scanner scanner = new Scanner(System.in);
-        //System.out.println("Input the total users number:");
         //输入用户总量
 
         int N = playList.size();
@@ -52,8 +51,6 @@ public final  class UserCFUtil {
         //辅助存储每一个ID对应的用户映射
         Map<Integer, Integer> idUser = new HashMap<>();
 
-//        System.out.println("Input user--items maping infermation:<eg:A a b d>");
-//        scanner.nextLine();
         List<Integer> userIdSet = new ArrayList <>(playList.keySet());
         for (int i = 0; i < N ; i++){
             //依次处理N个用户 输入数据 以空格间隔
@@ -97,7 +94,6 @@ public final  class UserCFUtil {
             }
         }
 
-       // System.out.println(userID.get(recommendUser));
         //计算用户之间的相似度【余弦相似性】
         int recommendUserId = userID.get(recommendUser);
         for (int j = 0;j < sparseMatrix.length; j++) {
@@ -108,7 +104,6 @@ public final  class UserCFUtil {
             }
         }
 
-        //List<Double> result = new ArrayList <>();
         Map<Integer, Double> resultMap = new TreeMap<Integer, Double>();
         //计算指定用户recommendUser的物品推荐度
         for (Integer item: items){
@@ -130,31 +125,17 @@ public final  class UserCFUtil {
         }
         // --Lamdba表达式
 //        Collections.sort(result, (a, b) ->{
-//            if(b>a)
-//            {
-//                return 1;
-//            }
 //            else {
-//                return -1;
-//            }
-//        });
         List<Entry<Integer, Double>> list = new ArrayList<>(resultMap.entrySet());
         Collections.sort(list,(o1,o2) ->
                  o2.getValue().compareTo(o1.getValue()));
         return new ArrayList <>(resultMap.keySet());
     }
 
-
-//    public static void sortByValue() {
 //        Map <Integer, Double> map = new TreeMap <Integer, Double>();
 //        List <Entry <Integer, Double>> list = new ArrayList <Entry <Integer, Double>>(map.entrySet());
 //        Collections.sort(list, new Comparator <Map.Entry <Integer, Double>>() {
 //            //升序排序
-//            public int compare(Entry <Integer, Double> o1, Entry <Integer, Double> o2) {
-//                return o1.getValue().compareTo(o2.getValue());
-//            }
-//        });
-//    }
 
     public static void main(String []a)
     {
@@ -183,7 +164,6 @@ public final  class UserCFUtil {
         playList.put(3,list3);
 
         List<Integer> list4 = new ArrayList <>();
-
 
         list4.add(6);
         list4.add(4);

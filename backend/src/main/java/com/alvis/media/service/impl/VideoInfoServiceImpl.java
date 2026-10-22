@@ -30,12 +30,10 @@ import java.util.stream.Collectors;
 
 public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements VideoInfoService {
 
-
     private final VideoInfoMapper videoInfoMapper;
     private final VideoPlayMapper videoPlayMapper;
     private final VideoTagService videoTagService;
     private final UserVideoOperationService userVideoOperationService;
-
 
     @Autowired
     public VideoInfoServiceImpl(VideoInfoMapper videoInfoMapper,
@@ -57,9 +55,6 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
         record.setCreateTime(new Date());
         return baseMapper.insertSelective(record);
     }
-
-
-
 
     @Override
     public int selectNewVideoCount(VideoInfo filter) {
@@ -137,7 +132,6 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
         return result;
     }
 
-
     private List <Integer> getPlayVideoIdListByUserId(Integer userId) {
         VideoPlay filter = new VideoPlay();
         filter.setUserId(userId);
@@ -177,7 +171,6 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
             videoPlay.setPlayTimes(videoPlayDb.getPlayTimes() + 1);
             videoPlayMapper.updateByPrimaryKeySelective(videoPlay);
         }
-
 
         // 往t_video_paly这表insert一条数据或者update.
         return 0;
@@ -261,8 +254,6 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
         return videoInfoMapper.selectByNameLike(StringUtils.defaultString(name).trim(), max);
     }
 
-//    @Override
-//    public int insertVideoPlay(String realUrl, Integer userId) {
 //
 //        VideoPlay videoPlay = new VideoPlay();
 //        videoPlay.setUserId(userId);
@@ -270,15 +261,10 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
 //        videoPlay.setVideoId(videoInfoMapper.selectVideoIdByUrl(realUrl));
 //
 //        List <VideoPlay> videoPlayDb = videoPlayMapper.selectByUserIdAndVideoId(videoPlay);
-//        if (null == videoPlayDb || 0 == videoPlayDb.size()) {
 //            videoPlay.setLastPlayTime(new Date());
 //            videoPlay.setPlayTimes(1);
 //            videoPlayMapper.insertSelective(videoPlay);
-//        } else {
 //            videoPlay.setLastPlayTime(new Date());
 //            videoPlay.setPlayTimes(videoPlayDb.get(0).getPlayTimes() + 1);
 //            videoPlayMapper.updateByPrimaryKeySelective(videoPlay);
-//        }
-//        return 0;
-//    }
 }

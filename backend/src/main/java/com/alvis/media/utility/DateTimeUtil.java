@@ -49,11 +49,7 @@ public final class DateTimeUtil {
         }
         return null;
     }
-//    public static void main(String str[])
-//    {
-//        System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getMonthStartDay()));
 //
-//    }
 
     /**
      * 获取当月的第一天 比如：2019-09-24 07：09：09  转换成2019-09-24 00:00:00
@@ -77,7 +73,6 @@ public final class DateTimeUtil {
         return parse(dateStr, STANDER_FORMAT);
     }
 
-
     public static List<String> MothStartToNowFormat() {
         Date startTime = getMonthStartDay();
         Calendar nowCalendar = Calendar.getInstance();
@@ -95,7 +90,6 @@ public final class DateTimeUtil {
         }
         return mothDays;
     }
-
 
     /**
      * 首页趋势图X 轴标签：本月 1 号 ~ 今天，格式 MM-DD。

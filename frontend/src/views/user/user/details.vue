@@ -54,29 +54,6 @@ export default {
     }
   },
   methods: {
-    // submitForm () {
-    //   let _this = this
-    //   this.$refs.form.validate((valid) => {
-    //     if (valid) {
-    //       this.formLoading = true
-    //       userApi.createUser(this.form).then(data => {
-    //         if (data.code === 1) {
-    //           _this.$message.success(data.message)
-    //           _this.delCurrentView(_this).then(() => {
-    //             _this.$router.push('/user/student/list')
-    //           })
-    //         } else {
-    //           _this.$message.error(data.message)
-    //           _this.formLoading = false
-    //         }
-    //       }).catch(e => {
-    //         _this.formLoading = false
-    //       })
-    //     } else {
-    //       return false
-    //     }
-    //   })
-    // },
     resetForm () {
       this.$refs['form'].resetFields()
     },

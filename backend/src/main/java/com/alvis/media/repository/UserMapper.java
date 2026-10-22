@@ -3,7 +3,6 @@ package com.alvis.media.repository;
 import com.alvis.media.domain.other.KeyValue;
 import com.alvis.media.domain.User;
 import com.alvis.media.viewmodel.admin.user.UserPageRequestVM;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

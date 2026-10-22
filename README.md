@@ -145,36 +145,38 @@ anime-system/                          # 系统根目录（整个目录拷贝到
 5. Python 虚拟环境：本包已随带 `.venv`（Python 3.12）。若换机器后不可用
    （例如目标机未安装同路径 Python 3.12），在 `anime-system` 根目录**双击 `setup_venv.cmd`** 即可自动重建。
 6. 启动后端（工作目录必须是 `backend`）：
-   - **推荐**：双击项目根目录 `restart_backend.cmd`（脚本已内置 JDK 17 自动选择，不需要手动配 JAVA_HOME）
-   - 命令行：`cd backend && mvn spring-boot:run`
+   - 命令行：`cd backend && mvn -Dmaven.test.skip=true compile spring-boot:run`
    - 或打包后运行：`mvn clean package` 后 `java -jar target/animeAnalysisSystem-3.0.3.jar`
    - IDE：用 IDE 打开 `backend`（Maven 工程），在 Project Structure 里把 SDK / Maven JRE 设为 **JDK 17**，再运行主类 `com.alvis.media.MediaApplication`
 7. 浏览器访问 `http://localhost:8000/admin`，登录 `admin / 123456`。
 
-#### 服务启停与重启（Windows / PowerShell）
+#### 服务启停与前端调试
 
-> **懒人版**：双击项目根目录的 **`start_all.cmd`** 即可一次完成
-> 「中间件自检 → 数据库检查 → JDK/Maven 检查 → 清理旧进程 → 启动后端 → 等待就绪 → 健康检查 → 打开浏览器」。
+前端页面由后端一并托管（`/admin`），**日常使用只需启停后端一个进程**：
 
-| 用法 | 说明 |
-| --- | --- |
-| 双击 `start_all.cmd` | 一键启动（推荐）：自动拉起 MySQL/Redis 服务、清理 8000 端口旧进程、后台启动后端、等待端口就绪后打开浏览器 |
-| `start_all.cmd dev` | 同上，另外再起一个 Vite 开发服务器（8002 端口，用于改前端源码调试） |
-| `start_all.cmd stop` | 停止本项目占用的 8000 / 8002 端口进程 |
-| `start_all.cmd status` | 查看端口占用情况与各数据表行数 |
+```bat
+cd backend
+mvn -Dmaven.test.skip=true compile spring-boot:run
+```
 
-> 脚本只做检查与启动，**不会修改数据库**；检测到库表未初始化时会打印需要执行的建库命令。
-> 后端日志写入项目根目录 `_boot.log`，启动失败时脚本会自动打印末尾 40 行。
+停止服务：在后端窗口按 `Ctrl + C`，或执行 `netstat -ano | findstr :8000` 找到 PID 后 `taskkill /PID <PID> /F`。
 
-> 旧版 `restart_backend.cmd` 保留，功能是「只重启后端」，排障时更快。
+只有在改前端源码做开发调试时，才需要另开一个终端跑 Vite 开发服务器（端口 8002，已把 `/api` 代理到 8000）：
 
-> **懒人版**：双击项目根目录的 **`restart_backend.cmd`** 即可一次完成
-> 「JDK 17 检测 → 查进程 → 杀进程 → 启动 → 等待端口 → 健康检查」。
-> 脚本自动优先使用 `C:\developtools\jdk17`，找不到时回退系统 `JAVA_HOME`，
-> 与电脑上其他项目的 JDK 互不影响。
->
-> 前端页面由后端一并托管（`/admin`），**日常使用只需启停后端一个进程**；
-> 只有在改前端源码做开发调试时才需要另开 `cd frontend && npm run dev`（端口 8002，已代理到 8000）。
+```bat
+cd frontend
+npm run dev
+```
+
+修改前端后重新构建，让后端托管新产物：
+
+```bat
+cd frontend
+npm run build
+xcopy /E /I /Y /Q admin\* ..\backend\src\main\resources\static\admin\
+```
+
+然后重启后端即可生效。
 
 **0. 前置中间件自检**
 
@@ -254,7 +256,8 @@ cd frontend
 npm run build                                    # 构建产物输出到 frontend/admin
 Copy-Item -Force 'admin\*' '..\backend\src\main\resources\static\admin\' -Recurse
 Set-Location ..
-.\restart_backend.cmd                            # 重启后端加载新产物
+# 重启后端加载新产物
+mvn -Dmaven.test.skip=true compile spring-boot:run
 ```
 
 > `index.html` 已配置 `no-store` 不缓存、`js/css` 带内容哈希可长缓存，重启后浏览器强制刷新

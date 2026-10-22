@@ -2,8 +2,6 @@ package com.alvis.media.configuration.property;
 
 import lombok.Data;
 
-import java.time.Duration;
-import java.util.List;
 
 @Data
 public class QnConfig {

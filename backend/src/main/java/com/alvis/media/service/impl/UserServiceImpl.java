@@ -49,7 +49,6 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
         this.eventPublisher = eventPublisher;
     }
 
-
     @Override
     public List<User> getUsers() {
         return userMapper.getAllUser();
@@ -72,18 +71,10 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
         return userMapper.selectUserCount(filter);
     }
 
-//    @Override
-//    public int selectUserCount(User filter) {
 //
 //        filter.setCreateTime(DateTimeUtil.getMonthStartDay());
 //        filter.setRole(RoleEnum.USER.getCode());
 //        Integer count = userMapper.selectUserCount(filter);
-//        if(null == count)
-//        {
-//            return 0;
-//        }
-//        return count;
-//    }
 
     @Override
     public User getUserById(Integer id) {
@@ -170,14 +161,12 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
         return userMapper.userPageCount(map);
     }
 
-
     @Override
     public PageInfo<User> userPage(UserPageRequestVM requestVM) {
         return PageHelper.startPage(requestVM.getPageIndex(), requestVM.getPageSize(), "id desc").doSelectPageInfo(() ->
                 userMapper.userPage(requestVM)
         );
     }
-
 
     @Override
     public void insertUser(User user) {
