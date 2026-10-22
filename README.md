@@ -1,5 +1,8 @@
 # 🎌 番析 AniScope —— 动漫数据分析与推荐系统
 
+> 📖 **使用说明**：本文件面向开发者（环境搭建、接口细节、算法清单）。
+> 面向最终使用者的操作说明请见 **[docs/用户手册.md](docs/用户手册.md)**。
+
 > 基于 MyAnimeList 动漫数据集（anime-dataset-2023.csv，2.4 万+ 部）与用户评分数据，构建覆盖「数据清洗 → 随机抽样 → 数据探索（EDA）→ 热度预测 → 个性化推荐 → Web 展示」全流程的动漫数据分析平台，采用 Java 后端 + Python 算法引擎的跨语言架构。
 
 ![Java](https://img.shields.io/badge/Java-17-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green) ![Vue](https://img.shields.io/badge/Vue-3-brightgreen) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Python](https://img.shields.io/badge/Python-3.12-blue) ![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1) ![Redis](https://img.shields.io/badge/Redis-Session%20Cache-red) ![License](https://img.shields.io/badge/License-MIT-yellow)
