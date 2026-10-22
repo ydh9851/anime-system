@@ -11,6 +11,7 @@ import com.alvis.media.service.VideoInfoService;
 import com.alvis.media.service.VideoTagService;
 import com.alvis.media.utility.DateTimeUtil;
 import com.alvis.media.utility.UserCFUtil;
+import com.alvis.media.viewmodel.video.VideoFilterOptionsResponseVM;
 import com.alvis.media.viewmodel.video.VideoPageRequestVM;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -70,6 +71,88 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
         return videoInfoMapper.countAll();
     }
 
+
+    /** 地区 / 语言 / 类型 / 题材 的取值映射，用于把库里的编码翻译成中文标签 */
+    private static final Map<String, String> COUNTRY_LABEL = new LinkedHashMap<>();
+    private static final Map<String, String> LANGUAGE_LABEL = new LinkedHashMap<>();
+    private static final Map<String, String> TYPE_LABEL = new LinkedHashMap<>();
+    private static final Map<String, String> GENRE_LABEL = new LinkedHashMap<>();
+
+    static {
+        COUNTRY_LABEL.put("JP", "日本");
+        COUNTRY_LABEL.put("CN", "中国");
+        COUNTRY_LABEL.put("KR", "韩国");
+        COUNTRY_LABEL.put("US", "欧美");
+        COUNTRY_LABEL.put("OTHER", "其他");
+        LANGUAGE_LABEL.put("ja", "日语");
+        LANGUAGE_LABEL.put("zh", "国语");
+        LANGUAGE_LABEL.put("ko", "韩语");
+        LANGUAGE_LABEL.put("en", "英语");
+        LANGUAGE_LABEL.put("OTHER", "其他");
+        TYPE_LABEL.put("TV", "TV 动画");
+        TYPE_LABEL.put("Movie", "剧场版");
+        TYPE_LABEL.put("OVA", "OVA");
+        TYPE_LABEL.put("ONA", "网络动画");
+        TYPE_LABEL.put("Special", "特别篇");
+        TYPE_LABEL.put("Music", "音乐");
+        GENRE_LABEL.put("Action", "动作");
+        GENRE_LABEL.put("Adventure", "冒险");
+        GENRE_LABEL.put("Comedy", "喜剧");
+        GENRE_LABEL.put("Drama", "剧情");
+        GENRE_LABEL.put("Fantasy", "奇幻");
+        GENRE_LABEL.put("Horror", "恐怖");
+        GENRE_LABEL.put("Mystery", "推理");
+        GENRE_LABEL.put("Romance", "恋爱");
+        GENRE_LABEL.put("Sci-Fi", "科幻");
+        GENRE_LABEL.put("Slice of Life", "日常");
+        GENRE_LABEL.put("Sports", "运动");
+        GENRE_LABEL.put("Supernatural", "超自然");
+        GENRE_LABEL.put("Suspense", "悬疑");
+        GENRE_LABEL.put("Award Winning", "获奖");
+        GENRE_LABEL.put("Avant Garde", "先锋");
+        GENRE_LABEL.put("Boys Love", "BL");
+        GENRE_LABEL.put("Girls Love", "GL");
+        GENRE_LABEL.put("Gourmet", "美食");
+    }
+
+    @Override
+    public VideoFilterOptionsResponseVM filterOptions() {
+        VideoFilterOptionsResponseVM vm = new VideoFilterOptionsResponseVM();
+        vm.setTotal(videoInfoMapper.countAll());
+        vm.setCountries(toOptions(videoInfoMapper.selectFilterCountries(), COUNTRY_LABEL));
+        vm.setLanguages(toOptions(videoInfoMapper.selectFilterLanguages(), LANGUAGE_LABEL));
+        vm.setTypes(toOptions(videoInfoMapper.selectFilterTypes(), TYPE_LABEL));
+        vm.setGenres(toOptions(videoInfoMapper.selectFilterGenres(), GENRE_LABEL));
+        Map<String, Object> bounds = videoInfoMapper.selectFilterYearBounds();
+        if (bounds != null) {
+            Object min = bounds.get("minYear");
+            Object max = bounds.get("maxYear");
+            vm.setMinYear(min == null ? null : Integer.valueOf(String.valueOf(min)));
+            vm.setMaxYear(max == null ? null : Integer.valueOf(String.valueOf(max)));
+        }
+        return vm;
+    }
+
+    private List<VideoFilterOptionsResponseVM.Option> toOptions(List<Map<String, Object>> rows,
+                                                               Map<String, String> labelMap) {
+        List<VideoFilterOptionsResponseVM.Option> list = new ArrayList<>();
+        if (rows == null) {
+            return list;
+        }
+        for (Map<String, Object> row : rows) {
+            Object nameObj = row.get("name");
+            Object countObj = row.get("count");
+            if (nameObj == null) {
+                continue;
+            }
+            VideoFilterOptionsResponseVM.Option opt = new VideoFilterOptionsResponseVM.Option();
+            opt.setValue(String.valueOf(nameObj));
+            opt.setLabel(labelMap.getOrDefault(opt.getValue(), opt.getValue()));
+            opt.setCount(countObj == null ? 0 : Integer.valueOf(String.valueOf(countObj)));
+            list.add(opt);
+        }
+        return list;
+    }
     @Override
     public PageInfo <VideoInfo> userPage(VideoPageRequestVM requestVM) {
         return PageHelper.startPage(requestVM.getPageIndex(), requestVM.getPageSize(), "video_id desc").doSelectPageInfo(() ->

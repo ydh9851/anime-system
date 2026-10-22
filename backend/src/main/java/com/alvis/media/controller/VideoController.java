@@ -79,6 +79,15 @@ public class VideoController extends BaseApiController {
         return RestResponse.ok(page);
     }
 
+    /**
+     * 动漫库筛选面板元数据：地区 / 语言 / 类型 / 题材选项及其命中数量。
+     * 前端据此渲染多维筛选面板，选项顺序按数量降序。
+     */
+    @GetMapping(value = "/filter-options")
+    public RestResponse<VideoFilterOptionsResponseVM> filterOptions() {
+        return RestResponse.ok(videoInfoService.filterOptions());
+    }
+
     @GetMapping(value = "/name")
     public RestResponse<List<KeyValue>> selectByVideoName(@RequestParam(required = false) String keyword,
                                                           @RequestParam(required = false) Integer limit) {

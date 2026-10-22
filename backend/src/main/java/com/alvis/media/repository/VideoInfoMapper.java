@@ -77,4 +77,18 @@ public interface VideoInfoMapper extends MediaBaseMapper <VideoInfo> {
     List<KeyValue> selectStudioTop(@Param("limit") Integer limit);
     List<KeyValue> selectSourceDistribution();
     List<KeyValue> selectTypeDistribution();
+
+    /** 筛选面板元数据：各维度选项及命中数量 */
+    List<Map<String, Object>> selectFilterCountries();
+
+    List<Map<String, Object>> selectFilterLanguages();
+
+    List<Map<String, Object>> selectFilterTypes();
+
+    List<Map<String, Object>> selectFilterGenres();
+
+    Map<String, Object> selectFilterYearBounds();
+
+    /** 按当前筛选条件统计命中数量（不含关键字，用于筛选面板实时计数） */
+    int countByFilter(VideoPageRequestVM requestVM);
 }

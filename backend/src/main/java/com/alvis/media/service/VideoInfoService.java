@@ -1,6 +1,7 @@
 package com.alvis.media.service;
 
 import com.alvis.media.domain.VideoInfo;
+import com.alvis.media.viewmodel.video.VideoFilterOptionsResponseVM;
 import com.alvis.media.viewmodel.video.VideoPageRequestVM;
 import com.github.pagehelper.PageInfo;
 
@@ -30,6 +31,13 @@ public interface VideoInfoService extends BaseService<VideoInfo> {
      * @return PageInfo<VideoInfo>
      */
     PageInfo <VideoInfo> userPage(VideoPageRequestVM requestVM);
+
+    /**
+     * 获取筛选面板元数据（各维度选项及命中数量）
+     *
+     * @return VideoFilterOptionsResponseVM
+     */
+    VideoFilterOptionsResponseVM filterOptions();
 
     List <VideoInfo> userAnalysis(Integer recommendUserId);
 

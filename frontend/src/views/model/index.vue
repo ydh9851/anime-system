@@ -114,7 +114,17 @@ export default {
     }
   },
   created () {
+    // 从数据集管理页点「训练」跳转过来时，自动带上 datasetId
+    const q = this.$route && this.$route.query
+    if (q && q.datasetId) {
+      this.form.datasetId = Number(q.datasetId)
+    }
     this.loadAll()
+  },
+  beforeRouteUpdate (to) {
+    if (to.query && to.query.datasetId) {
+      this.form.datasetId = Number(to.query.datasetId)
+    }
   },
   beforeDestroy () {
     //离开页面必须停掉轮询，否则定时器会一直跑

@@ -2,6 +2,8 @@ import { post, get, put, del } from '@/utils/request'
 
 export default {
   getVideoPageList: query => post('/api/admin/video/page/list', query),
+  /** 筛选面板元数据：各维度选项与命中数量 */
+  getFilterOptions: () => get('/api/admin/video/filter-options'),
   createVideo: query => post('/api/admin/video', query),
   editVideo: (id, query) => put('/api/admin/video/' + id, query),
   selectVideo: id => get('/api/admin/video/' + id),

@@ -281,12 +281,53 @@
     <include refid="Base_Column_List"/>
     FROM t_video_info
     <where>
-
       <if test="videoName != null and videoName != ''">
         and video_name like concat('%',#{videoName},'%')
       </if>
-
+      <if test="countries != null and countries.size() > 0">
+        and country in
+        <foreach collection="countries" item="c" open="(" separator="," close=")">#{c}</foreach>
+      </if>
+      <if test="languages != null and languages.size() > 0">
+        and original_language in
+        <foreach collection="languages" item="l" open="(" separator="," close=")">#{l}</foreach>
+      </if>
+      <if test="types != null and types.size() > 0">
+        and video_type in
+        <foreach collection="types" item="t" open="(" separator="," close=")">#{t}</foreach>
+      </if>
+      <if test="genres != null and genres.size() > 0">
+        and exists (
+          select 1 from t_video_tag vt join t_tag tg on vt.tag_id = tg.tag_id
+          where vt.video_id = t_video_info.video_id
+            and tg.tag_name in
+          <foreach collection="genres" item="g" open="(" separator="," close=")">#{g}</foreach>
+        )
+      </if>
+      <if test="yearFrom != null">
+        and year(release_date) &gt;= #{yearFrom}
+      </if>
+      <if test="yearTo != null">
+        and year(release_date) &lt;= #{yearTo}
+      </if>
+      <if test="voteMin != null">
+        and vote_average &gt;= #{voteMin}
+      </if>
     </where>
+    <choose>
+      <when test="orderBy == 'vote'">
+        order by vote_average desc, vote_count desc
+      </when>
+      <when test="orderBy == 'release'">
+        order by release_date desc, video_id desc
+      </when>
+      <when test="orderBy == 'heat'">
+        order by heat_score desc, video_id desc
+      </when>
+      <otherwise>
+        order by video_id desc
+      </otherwise>
+    </choose>
   </select>
 
   <select id="selectHotVideoList"  resultMap="BaseResultMap">
@@ -446,6 +487,62 @@
 
   <select id="countAll" resultType="java.lang.Integer">
     SELECT COUNT(1) FROM t_video_info
+  </select>
+
+
+  <!-- 筛选面板元数据：各维度选项及其命中数量 -->
+  <select id="selectFilterCountries" resultType="java.util.Map">
+    SELECT country AS name, COUNT(*) AS count FROM t_video_info
+    WHERE country IS NOT NULL AND country != '' GROUP BY country ORDER BY count DESC
+  </select>
+
+  <select id="selectFilterLanguages" resultType="java.util.Map">
+    SELECT original_language AS name, COUNT(*) AS count FROM t_video_info
+    WHERE original_language IS NOT NULL AND original_language != '' GROUP BY original_language ORDER BY count DESC
+  </select>
+
+  <select id="selectFilterTypes" resultType="java.util.Map">
+    SELECT video_type AS name, COUNT(*) AS count FROM t_video_info
+    WHERE video_type IS NOT NULL AND video_type != '' GROUP BY video_type ORDER BY count DESC
+  </select>
+
+  <select id="selectFilterGenres" resultType="java.util.Map">
+    SELECT tg.tag_name AS name, COUNT(*) AS count
+    FROM t_video_tag vt JOIN t_tag tg ON vt.tag_id = tg.tag_id
+    WHERE tg.tag_name != 'UNKNOWN'
+      AND tg.tag_name NOT IN ('Hentai', 'Ecchi', 'Erotica')
+    GROUP BY tg.tag_name ORDER BY count DESC
+  </select>
+
+  <select id="selectFilterYearBounds" resultType="java.util.Map">
+    SELECT MIN(YEAR(release_date)) AS minYear, MAX(YEAR(release_date)) AS maxYear
+    FROM t_video_info WHERE release_date IS NOT NULL
+  </select>
+
+  <select id="countByFilter" resultType="java.lang.Integer">
+    SELECT COUNT(1) FROM t_video_info
+    <where>
+      <if test="countries != null and countries.size() > 0">
+        and country in
+        <foreach collection="countries" item="c" open="(" separator="," close=")">#{c}</foreach>
+      </if>
+      <if test="languages != null and languages.size() > 0">
+        and original_language in
+        <foreach collection="languages" item="l" open="(" separator="," close=")">#{l}</foreach>
+      </if>
+      <if test="types != null and types.size() > 0">
+        and video_type in
+        <foreach collection="types" item="t" open="(" separator="," close=")">#{t}</foreach>
+      </if>
+      <if test="genres != null and genres.size() > 0">
+        and exists (select 1 from t_video_tag vt join t_tag tg on vt.tag_id = tg.tag_id
+          where vt.video_id = t_video_info.video_id and tg.tag_name in
+          <foreach collection="genres" item="g" open="(" separator="," close=")">#{g}</foreach>)
+      </if>
+      <if test="voteMin != null">
+        and vote_average &gt;= #{voteMin}
+      </if>
+    </where>
   </select>
 
 </mapper>
