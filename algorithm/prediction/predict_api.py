@@ -68,7 +68,7 @@ NUMERIC_COLS = ["budget", "popularity", "runtime"]
 CAT_COLS = ["original_language", "status"]
 
 # 缓存版本：特征工程或模型结构变更时递增（旧缓存自动失效重训）
-FEATURE_VERSION = 2
+FEATURE_VERSION = 3
 
 # 模型实际使用的特征（顺序固定，predict 时保持一致）
 FEATURE_NAMES = ["budget_log", "popularity_log", "runtime", "interact",
@@ -236,7 +236,10 @@ def load_or_train(name):
         with _silent():
             bundle = joblib.load(path)
         # 版本不符（特征工程/模型结构已升级）-> 丢弃旧缓存重训
-        if isinstance(bundle, dict) and bundle.get("version") == FEATURE_VERSION:
+        # 额外校验缓存结构完整性，避免旧格式缓存缺字段导致 KeyError
+        required = ("model", "metrics", "meta", "feature_names")
+        if (isinstance(bundle, dict) and bundle.get("version") == FEATURE_VERSION
+                and all(k in bundle for k in required)):
             return bundle, False
     with _silent():
         train_and_cache(name)

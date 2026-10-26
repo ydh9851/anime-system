@@ -100,7 +100,7 @@
       </section>
 
       <footer class="bottom-bar">
-        <span>数据源：MyAnimeList 清洗数据集（24905 部） + 行为数据表 t_video_play / t_user_event_log</span>
+        <span>数据源：MyAnimeList 清洗数据集（24661 部） + 行为数据表 t_video_play / t_user_event_log</span>
         <span class="auto-refresh">
           自动刷新
           <el-switch v-model="autoRefresh" size="mini" />

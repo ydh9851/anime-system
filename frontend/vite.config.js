@@ -42,9 +42,8 @@ export default defineConfig({
     assetsDir: 'static',
     sourcemap: false,
     chunkSizeWarningLimit: 4000,
-    // 不清空输出目录：前端产物含 public/ 下上千个第三方组件文件（ueditor/echarts），
-    // 每次构建全量删除易触发编辑器的批量删除保护导致构建中断；
-    // 资源文件名带内容哈希，旧文件残留不影响运行（index.html 始终引用最新 bundle）。
-    emptyOutDir: false
+    // 每次构建前清空输出目录：资源名带内容哈希，残留的历史 chunk 会不断累积
+    // （实测累积到 571 个文件 / 28 MB），清理后仅保留当前版本产物。
+    emptyOutDir: true
   }
 })

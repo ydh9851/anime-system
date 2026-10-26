@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * 避免首页「视频热度榜单 TOP10」因 heat_score 为 NULL 而永远为空。
  *
  * <p>可通过配置项 {@code anime.heat.init-on-startup} 关闭。
- * 开启时每次启动都会重算全库 24905 条，会明显拖慢启动；
+ * 开启时每次启动都会重算全库 24661 条，会明显拖慢启动；
  * 只需要在首次导入数据后或热度公式变更后重算一次，其余情况建议置为 false。
  */
 @Slf4j

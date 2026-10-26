@@ -126,7 +126,7 @@ anime-system/                          # 系统根目录（整个目录拷贝到
    mysql -uroot -p123456 < sql/anime_mangage_db.sql
    ```
    > 若 `t_video_info` 字段缺失，可再执行 `sql/_recreate_video_info.sql` 重建该表。
-   > 全量 24905 部动漫的增强数据（`studios` 制作公司、`country` 国家/地区、`source` 原作来源、
+   > 全量 24661 部动漫的增强数据（`studios` 制作公司、`country` 国家/地区、`source` 原作来源、
    > `premiered` 首播季度、`video_type` 动画类型、`poster_path` 海报等）由
    > `scripts/data_prep/build_full_dataset.py` 幂等构建，重复执行不会破坏外键关联。
    ```bash
@@ -187,6 +187,7 @@ npm run dev
 ```bat
 cd frontend
 npm run build
+rmdir /S /Q ..\backend\src\main\resources\static\admin
 xcopy /E /I /Y /Q admin\* ..\backend\src\main\resources\static\admin\
 ```
 

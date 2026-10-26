@@ -47,7 +47,7 @@ public class DashboardController extends BaseApiController {
 
 
 
-       // 动漫库总数。本工程的 t_video_info 是一次性全量导入的（24905 部），
+       // 动漫库总数。本工程的 t_video_info 是一次性全量导入的（24661 部），
        // 统计「本月新增」恒为 0、没有展示价值，因此这里展示库内总量。
        int videoTotal = videoInfoService.countAll();
        vm.setVideoTotal(videoTotal);

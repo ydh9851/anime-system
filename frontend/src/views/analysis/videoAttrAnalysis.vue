@@ -1,7 +1,7 @@
 <template>
   <div class="app-container" v-loading="loading">
     <el-alert type="success" :closable="false" show-icon style="margin-bottom:14px"
-              title="动漫属性分析：统计动漫内容属性（数据源 t_video_info，覆盖全量 24905 部动漫作品，含国家/制作公司/原作来源/动画类型维度）。配套底层算法：LightGBM/RandomForest 等热度预测的特征取自这些动漫属性（语言、集数、热度、时长等）。"/>
+              title="动漫属性分析：统计动漫内容属性（数据源 t_video_info，覆盖全量 24661 部动漫作品，含国家/制作公司/原作来源/动画类型维度）。配套底层算法：LightGBM/RandomForest 等热度预测的特征取自这些动漫属性（语言、集数、热度、时长等）。"/>
 
     <el-row :gutter="16" class="stat-row">
       <el-col :span="4" v-for="c in statCards" :key="c.label">
