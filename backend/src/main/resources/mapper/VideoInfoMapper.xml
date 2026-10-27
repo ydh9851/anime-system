@@ -316,7 +316,7 @@
     </where>
     <choose>
       <when test="orderBy == 'vote'">
-        order by vote_average desc, vote_count desc
+        order by vote_average desc, vote_count desc, heat_score desc, video_id desc
       </when>
       <when test="orderBy == 'release'">
         order by release_date desc, video_id desc

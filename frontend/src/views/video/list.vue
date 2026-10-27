@@ -7,7 +7,9 @@
         <el-button type="primary" round icon="el-icon-search" @click="applyFilter">搜索</el-button>
       </div>
       <div class="hero-meta">
-        <div class="stat"><b>{{ total }}</b><span>部作品</span></div>
+        <div class="stat"><b>{{ total }}</b><span>部命中</span>
+          <i v-if="allTotal && total < allTotal" class="stat-all">/ 全库 {{ allTotal }} 部</i>
+        </div>
         <div class="stat-divider" />
         <div class="sort-group">
           <span class="sort-label">排序</span>
@@ -56,10 +58,11 @@
                        placeholder="不限年份" @change="applyFilter">
               <el-option v-for="y in yearOptions" :key="y" :label="y + ' 年'" :value="y" />
             </el-select>
-            <el-select v-model="voteMin" clearable size="small" class="vote-select" placeholder="最低评分" @change="applyFilter">
+            <el-select v-model="voteMin" clearable size="small" class="vote-select" placeholder="不限评分" @change="applyFilter">
               <el-option label="不限评分" :value="0" />
-              <el-option v-for="s in scoreOptions" :key="s" :label="s + ' 分以上'" :value="s" />
+              <el-option v-for="s in scoreOptions" :key="s" :label="s + '.0 分及以上（含）'" :value="s" />
             </el-select>
+            <span class="filter-note">默认只展示评分 9.0 分及以上的高分作品，阈值判定包含等于该分值</span>
           </div>
         </div>
       </div>
@@ -91,7 +94,7 @@
             <span v-if="row.genres.length > 3" class="genre-tag more">+{{ row.genres.length - 3 }}</span>
           </div>
           <div class="meta-row">
-            <span class="score"><b>{{ row.voteAverage == null ? '-' : Number(row.voteAverage).toFixed(1) }}</b><i class="score-star">★</i></span>
+            <span class="score"><b>{{ row.voteAverage == null ? '-' : Number(row.voteAverage).toFixed(2) }}</b><i class="score-star">★</i></span>
             <span class="votes">{{ fmtCount(row.voteCount) }} 人评分</span>
           </div>
           <div class="meta-row sub">
@@ -108,7 +111,15 @@
       </div>
     </div>
 
-    <el-empty v-else-if="!listLoading" :description="activeChips.length ? '没有符合条件的结果' : '暂无动漫数据'" />
+    <el-empty v-else-if="!listLoading" :description="emptyDesc" :image-size="120">
+      <p class="empty-tip">{{ emptyTip }}</p>
+      <div class="empty-actions">
+        <el-button v-if="canRelax" type="primary" plain size="small" @click="relaxFilter">
+          放宽到 {{ nextScoreLabel }}
+        </el-button>
+        <el-button size="small" @click="clearAll">恢复默认视图</el-button>
+      </div>
+    </el-empty>
 
     <div class="pager-wrap">
       <pagination v-show="total>0" :total="total" v-model:page="queryParam.pageIndex" v-model:limit="queryParam.pageSize"
@@ -154,14 +165,15 @@ export default {
         yearFrom: null,
         yearTo: null,
         voteMin: null,
-        orderBy: "default",
+        orderBy: "vote",
         pageIndex: 1,
         pageSize: 12
       },
       yearRange: [],
-      voteMin: null,
+      voteMin: 9,
       options: { countries: [], languages: [], types: [], genres: [] },
       minYear: null,
+      allTotal: 0,
       maxYear: null,
       showCount: true,
       panelCollapsed: false,
@@ -194,6 +206,35 @@ export default {
       for (let y = this.maxYear; y >= this.minYear; y--) arr.push(y)
       return arr
     },
+    /** 当前视图的评分阈值说明（含等于该分值） */
+    scoreThresholdText () {
+      return this.voteMin ? this.voteMin.toFixed(1) + " 分及以上（包含等于该分值）" : "不限评分"
+    },
+    /** 无结果时的标题 */
+    emptyDesc () {
+      if (this.voteMin) {
+        return "没有评分 ≥ " + this.voteMin.toFixed(1) + " 的动漫"
+      }
+      return "暂无动漫数据"
+    },
+    /** 无结果时的引导说明 */
+    emptyTip () {
+      const parts = []
+      if (this.voteMin) parts.push("当前评分阈值为 " + this.scoreThresholdText)
+      if (this.activeChips.length) parts.push("另有 " + this.activeChips.length + " 个筛选条件生效")
+      parts.push("可调低评分阈值，或恢复默认视图查看全部作品")
+      return parts.join("；")
+    },
+    /** 是否可以继续放宽评分阈值 */
+    canRelax () {
+      return !!this.voteMin && this.scoreOptions.indexOf(this.voteMin) > 0
+    },
+    /** 下一个更宽松的评分档位文案 */
+    nextScoreLabel () {
+      const i = this.scoreOptions.indexOf(this.voteMin)
+      if (i <= 0) return "不限评分"
+      return this.scoreOptions[i - 1] + ".0 分及以上"
+    },
     activeChips () {
       const chips = []
       Object.keys(DIM_META).forEach(key => {
@@ -221,7 +262,7 @@ export default {
         })
       }
       if (this.voteMin) {
-        chips.push({ key: "vote", dim: "评分", label: this.voteMin + " 分以上", type: "info", dimKey: "vote" })
+        chips.push({ key: "vote", dim: "评分", label: this.voteMin + ".0 分及以上（含 " + this.voteMin + ".0）", type: "info", dimKey: "vote" })
       }
       return chips
     }
@@ -238,6 +279,7 @@ export default {
         this.options.languages = o.languages || []
         this.options.types = o.types || []
         this.options.genres = o.genres || []
+        this.allTotal = o.total || 0
         this.minYear = o.minYear
         this.maxYear = o.maxYear
       }).catch(() => {})
@@ -276,9 +318,17 @@ export default {
       this.queryParam.types = []
       this.queryParam.genres = []
       this.yearRange = []
-      this.voteMin = null
+      // 评分阈值与排序属于视图级设置：清空后回到默认视图（9.0 分及以上 + 按评分降序）
+      this.voteMin = 9
+      this.queryParam.orderBy = "vote"
       this.applyFilter()
     },
+    relaxFilter () {
+      const i = this.scoreOptions.indexOf(this.voteMin)
+      this.voteMin = i > 0 ? this.scoreOptions[i - 1] : null
+      this.applyFilter()
+    },
+
     setSort (v) {
       this.queryParam.orderBy = v
       this.applyFilter()
@@ -560,4 +610,9 @@ export default {
 
 .pager-wrap { margin-top: 18px; display: flex; justify-content: center; }
 </style>
+
+
+.stat-all { font-style: normal; font-size: 12px; color: #a8b3c4; margin-left: 6px; }
+.empty-tip { font-size: 13px; color: #94a3b8; margin: 4px 0 10px; line-height: 1.7; }
+.empty-actions { display: flex; gap: 10px; justify-content: center; }
 

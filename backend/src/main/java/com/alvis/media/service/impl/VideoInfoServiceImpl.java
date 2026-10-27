@@ -155,7 +155,10 @@ public class VideoInfoServiceImpl extends BaseServiceImpl <VideoInfo> implements
     }
     @Override
     public PageInfo <VideoInfo> userPage(VideoPageRequestVM requestVM) {
-        return PageHelper.startPage(requestVM.getPageIndex(), requestVM.getPageSize(), "video_id desc").doSelectPageInfo(() ->
+        // 注意：不能给 PageHelper 传第三个 orderBy 参数，它会覆盖 SQL 里的 ORDER BY，
+        // 导致前端选择的排序方式（评分 / 热度 / 首播时间）全部失效。
+        // 排序统一由 VideoInfoMapper.xml 的 <choose> 决定，默认分支为 video_id desc。
+        return PageHelper.startPage(requestVM.getPageIndex(), requestVM.getPageSize()).doSelectPageInfo(() ->
                 videoInfoMapper.videoPage(requestVM)
         );
     }
