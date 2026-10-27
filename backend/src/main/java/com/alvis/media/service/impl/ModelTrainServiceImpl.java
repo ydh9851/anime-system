@@ -223,7 +223,9 @@ public class ModelTrainServiceImpl implements ModelTrainService {
             throw new IllegalStateException("训练超时（>" + TIMEOUT_SECONDS + "秒）");
         }
         if (p.exitValue() != 0) {
-            throw new IllegalStateException("python 退出码 " + p.exitValue());
+            String pyOut = sb.toString().trim();
+            String detail = pyOut.length() > 200 ? pyOut.substring(pyOut.length() - 200) : pyOut;
+            throw new IllegalStateException("训练脚本执行失败（退出码 " + p.exitValue() + "）：" + detail);
         }
         return sb.toString();
     }
